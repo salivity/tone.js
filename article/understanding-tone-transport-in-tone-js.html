@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Tone.Transport in Tone.js - tone.js</title>
+    <meta name="description" content="In web audio development, orchestrating time is crucial for creating cohesive musical experiences. This article explores the significance of the Tone.Transport object in Tone.js, detailing how it acts as the master timeline for scheduling events, managin">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/understanding-tone-transport-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Understanding Tone.Transport in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/understanding-tone-transport-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In web audio development, orchestrating time is crucial for creating cohesive musical experiences. This article explores the significance of the Tone.Transport object in Tone.js, detailing how it acts as the master timeline for scheduling events, managin" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="understanding-tonetransport-in-tonejs">Understanding
+Tone.Transport in Tone.js</h1>
+<p>In web audio development, orchestrating time is crucial for creating
+cohesive musical experiences. This article explores the significance of
+the <code>Tone.Transport</code> object in Tone.js, detailing how it acts
+as the master timeline for scheduling events, managing playback, and
+synchronizing audio sources to a global clock.</p>
+<h2 id="the-master-timeline-of-web-audio">The Master Timeline of Web
+Audio</h2>
+<p>In the native Web Audio API, timing is based on absolute seconds
+elapsed since the audio context started. This makes scheduling complex
+musical structures like bars, beats, and tempo changes highly
+difficult.</p>
+<p><code>Tone.Transport</code> solves this by introducing a musical
+timeline. It abstracts seconds into measures, beats, and sixteenth notes
+(represented in the format <code>Bars:Beats:Sixteenths</code>). It
+serves as the central timekeeper, allowing developers to think in
+musical terms rather than raw milliseconds.</p>
+<h2 id="centralized-playback-control">Centralized Playback Control</h2>
+<p>The <code>Tone.Transport</code> object provides global control over
+the state of an application's audio playback. Instead of starting and
+stopping individual synthesizers, samplers, or players manually,
+developers can schedule them to trigger relative to the Transport.</p>
+<p>By calling simple commands, you can control the entire application
+state:</p>
+<ul>
+<li><code>Tone.Transport.start()</code> initiates playback.</li>
+<li><code>Tone.Transport.stop()</code> stops playback and resets the
+timeline position back to zero.</li>
+<li><code>Tone.Transport.pause()</code> halts playback while preserving
+the current position.</li>
+</ul>
+<h2 id="dynamic-tempo-and-time-signature-management">Dynamic Tempo and
+Time Signature Management</h2>
+<p>One of the most significant features of <code>Tone.Transport</code>
+is its ability to handle dynamic tempo (BPM) and time signature
+changes.</p>
+<p>Because all events are scheduled relative to the Transport's musical
+timeline, changing the tempo via <code>Tone.Transport.bpm.value</code>
+instantly scales the playback speed of all scheduled events. Synced
+loops, LFOs, delays, and sequences automatically adjust their timing in
+real-time without drifting out of sync.</p>
+<h2 id="high-precision-event-scheduling">High-Precision Event
+Scheduling</h2>
+<p><code>Tone.Transport</code> offers several methods to schedule events
+with sample-accurate precision:</p>
+<ul>
+<li><strong><code>schedule()</code></strong>: Triggers a callback at a
+specific moment on the timeline (e.g., at the start of the third
+measure).</li>
+<li><strong><code>scheduleRepeat()</code></strong>: Repeatedly triggers
+a callback at a specified interval (e.g., every quarter note).</li>
+<li><strong><code>position</code></strong>: Allows developers to read or
+set the current playhead position on the timeline.</li>
+</ul>
+<p>This scheduling system forms the backbone of higher-level Tone.js
+components like <code>Tone.Sequence</code>, <code>Tone.Part</code>, and
+<code>Tone.Pattern</code>, which rely on the Transport to sequence notes
+and loops.</p>
+<h2 id="loop-management">Loop Management</h2>
+<p>For interactive music and games, looping is essential.
+<code>Tone.Transport</code> contains built-in looping mechanisms. By
+setting <code>Tone.Transport.loop = true</code> and defining the
+<code>loopStart</code> and <code>loopEnd</code> points, developers can
+effortlessly repeat specific sections of a composition indefinitely.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

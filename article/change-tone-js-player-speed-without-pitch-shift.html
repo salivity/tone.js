@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Tone.js Player Speed Without Pitch Shift - tone.js</title>
+    <meta name="description" content="This article explains how to alter the playback rate of an audio file in Tone.js without affecting its pitch. While the standard Tone.Player node changes both speed and pitch simultaneously, you can achieve independent time-stretching by utilizing the To">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/change-tone-js-player-speed-without-pitch-shift">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Change Tone.js Player Speed Without Pitch Shift - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/change-tone-js-player-speed-without-pitch-shift" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to alter the playback rate of an audio file in Tone.js without affecting its pitch. While the standard Tone.Player node changes both speed and pitch simultaneously, you can achieve independent time-stretching by utilizing the To" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="change-tonejs-player-speed-without-pitch-shift">Change Tone.js
+Player Speed Without Pitch Shift</h1>
+<p>This article explains how to alter the playback rate of an audio file
+in Tone.js without affecting its pitch. While the standard
+<code>Tone.Player</code> node changes both speed and pitch
+simultaneously, you can achieve independent time-stretching by utilizing
+the <code>Tone.GrainPlayer</code> node instead. Below, you will find a
+direct explanation and code examples demonstrating how to implement this
+solution.</p>
+<h2 id="the-problem-with-toneplayer">The Problem with Tone.Player</h2>
+<p>In Tone.js, the standard <code>Tone.Player</code> simulates a
+traditional tape player. When you increase the
+<code>playbackRate</code>, the audio plays faster, but the pitch rises.
+When you decrease it, the audio slows down and the pitch drops.</p>
+<p>To change the speed of your audio while maintaining the original
+pitch, you must use granular synthesis. Tone.js provides a dedicated
+node for this called <code>Tone.GrainPlayer</code>.</p>
+<h2 id="the-solution-tonegrainplayer">The Solution:
+Tone.GrainPlayer</h2>
+<p><code>Tone.GrainPlayer</code> splits the audio buffer into small
+segments (grains) and plays them back in a way that allows you to adjust
+the playback speed and the pitch independently.</p>
+<p>Here is how to set up and use <code>Tone.GrainPlayer</code> to change
+the speed without changing the pitch:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create and load the GrainPlayer</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> player <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">GrainPlayer</span>({</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">url</span><span class="op">:</span> <span class="st">&quot;path/to/your/audio.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">onload</span><span class="op">:</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Start playback once the file is loaded</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Increase speed by 50% (pitch remains unchanged)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">playbackRate</span> <span class="op">=</span> <span class="fl">1.5</span><span class="op">;</span> </span></code></pre></div>
+<h2 id="fine-tuning-the-audio-quality">Fine-Tuning the Audio
+Quality</h2>
+<p>Because granular synthesis slices the audio into small pieces,
+time-stretching can sometimes introduce artifacts or a "jittery" sound.
+You can optimize the audio quality of your speed-adjusted playback by
+tweaking the following properties on your <code>Tone.GrainPlayer</code>
+instance:</p>
+<ul>
+<li><strong><code>grainSize</code></strong>: Defines the duration of
+each grain (default is 0.2 seconds). For speech or transient-heavy
+sounds, smaller grain sizes often sound better. For pads and continuous
+tones, larger grain sizes are ideal.</li>
+<li><strong><code>overlap</code></strong>: Defines the amount of overlap
+between grains (default is 0.1 seconds). Adjusting this helps smooth out
+transitions between the audio slices.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Adjusting grain parameters for smoother playback</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">grainSize</span> <span class="op">=</span> <span class="fl">0.08</span><span class="op">;</span> <span class="co">// 80 milliseconds</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">overlap</span> <span class="op">=</span> <span class="fl">0.04</span><span class="op">;</span>   <span class="co">// 40 milliseconds</span></span></code></pre></div>
+<p>By substituting <code>Tone.Player</code> with
+<code>Tone.GrainPlayer</code>, you gain complete control over your
+audio's playback speed without compromising its original key or
+pitch.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

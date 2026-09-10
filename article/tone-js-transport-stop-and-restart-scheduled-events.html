@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.js Transport Stop and Restart Scheduled Events - tone.js</title>
+    <meta name="description" content="When working with web audio in Tone.js, understanding how the timeline behaves during playback control is essential. This article explains what happens to scheduled events when Tone.Transport is stopped and subsequently restarted, highlighting how event">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-js-transport-stop-and-restart-scheduled-events">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.js Transport Stop and Restart Scheduled Events - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-js-transport-stop-and-restart-scheduled-events" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When working with web audio in Tone.js, understanding how the timeline behaves during playback control is essential. This article explains what happens to scheduled events when Tone.Transport is stopped and subsequently restarted, highlighting how event" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonejs-transport-stop-and-restart-scheduled-events">Tone.js
+Transport Stop and Restart Scheduled Events</h1>
+<p>When working with web audio in Tone.js, understanding how the
+timeline behaves during playback control is essential. This article
+explains what happens to scheduled events when
+<code>Tone.Transport</code> is stopped and subsequently restarted,
+highlighting how event scheduling persists on the timeline and how the
+playhead position changes.</p>
+<h2 id="scheduled-events-persist-in-memory">Scheduled Events Persist in
+Memory</h2>
+<p>When you schedule an event using
+<code>Tone.Transport.schedule()</code>,
+<code>Tone.Transport.scheduleRepeat()</code>, or
+<code>Tone.Transport.scheduleOnce()</code>, the event is bound to a
+specific time or tick on the Transport's timeline.</p>
+<p>Stopping and restarting the Transport <strong>does not delete or
+clear</strong> these scheduled events. They remain in the Transport's
+queue until you explicitly remove them using
+<code>Tone.Transport.clear(id)</code> or clear the entire timeline using
+<code>Tone.Transport.cancel()</code>.</p>
+<h2 id="what-happens-when-you-call-tonetransportstop">What Happens When
+You Call <code>Tone.Transport.stop()</code>?</h2>
+<p>Calling <code>Tone.Transport.stop()</code> affects the timeline and
+playing events in the following ways:</p>
+<ul>
+<li><strong>Playback Halts:</strong> The internal timeline clock stops
+ticking, and no further scheduled events will be triggered.</li>
+<li><strong>Playhead Resets to Zero:</strong> The Transport's position
+(the virtual playhead) is immediately reset back to <code>0</code> (the
+beginning of the timeline).</li>
+<li><strong>Active Synths and Effects:</strong> Any synthesizers or
+samplers that were triggered right before the stop will continue their
+release phase or ring out unless they are explicitly muted or
+released.</li>
+</ul>
+<h2 id="what-happens-when-you-call-tonetransportstart">What Happens When
+You Call <code>Tone.Transport.start()</code>?</h2>
+<p>When you restart the Transport after stopping it, the timeline
+behaves as follows:</p>
+<ul>
+<li><strong>Playhead Starts at Zero:</strong> Because stopping resets
+the timeline, calling <code>start()</code> begins playback from time
+<code>0</code> (unless you pass a specific start offset argument, such
+as <code>Tone.Transport.start("+0.1", "1m")</code>).</li>
+<li><strong>Events Re-trigger:</strong> As the playhead moves forward
+from <code>0</code>, any events scheduled at or after the start position
+will trigger again as the playhead reaches their designated time
+stamps.</li>
+</ul>
+<h2 id="stopping-vs-pausing">Stopping vs. Pausing</h2>
+<p>It is important to distinguish between stopping and pausing, as they
+handle scheduled events differently upon restart:</p>
+<ul>
+<li><strong><code>Tone.Transport.stop()</code>:</strong> Resets the
+position to <code>0</code>. When you restart, all scheduled events from
+the very beginning of the timeline will play again.</li>
+<li><strong><code>Tone.Transport.pause()</code>:</strong> Freezes the
+playhead at its current position. When you call
+<code>Tone.Transport.start()</code> after pausing, playback resumes
+exactly where it left off, and only future scheduled events will
+trigger.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

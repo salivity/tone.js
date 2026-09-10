@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Bypass an Effect in Tone.js - tone.js</title>
+    <meta name="description" content="In Tone.js, bypassing an effect without disconnecting it from the audio graph is essential for maintaining a continuous signal flow and preventing audio glitches. This article explains how to temporarily disable or bypass any effect node in Tone.js using">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-bypass-an-effect-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Bypass an Effect in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-bypass-an-effect-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Tone.js, bypassing an effect without disconnecting it from the audio graph is essential for maintaining a continuous signal flow and preventing audio glitches. This article explains how to temporarily disable or bypass any effect node in Tone.js using" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-bypass-an-effect-in-tonejs">How to Bypass an Effect in
+Tone.js</h1>
+<p>In Tone.js, bypassing an effect without disconnecting it from the
+audio graph is essential for maintaining a continuous signal flow and
+preventing audio glitches. This article explains how to temporarily
+disable or bypass any effect node in Tone.js using the <code>wet</code>
+property, allowing you to toggle effects on and off seamlessly during
+playback.</p>
+<hr />
+<h3 id="the-standard-method-utilizing-the-wet-control">The Standard
+Method: Utilizing the <code>wet</code> Control</h3>
+<p>The most efficient way to bypass an effect in Tone.js is by
+manipulating its <code>wet</code> parameter. Almost all effect nodes in
+Tone.js (such as <code>Distortion</code>, <code>Reverb</code>,
+<code>Delay</code>, and <code>Chorus</code>) inherit from the base
+<code>Tone.Effect</code> class. This class includes a <code>wet</code>
+signal that controls the ratio of the wet (effected) signal to the dry
+(unaffected) signal.</p>
+<ul>
+<li><strong>To bypass the effect:</strong> Set the <code>wet</code>
+value to <code>0</code>. This routes only the dry, clean audio through
+the node.</li>
+<li><strong>To enable the effect:</strong> Set the <code>wet</code>
+value to <code>1</code> (or any value between <code>0</code> and
+<code>1</code> for a mixed signal).</li>
+</ul>
+<h4 id="code-example">Code Example:</h4>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a synth and an effect</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">PolySynth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> feedbackDelay <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">FeedbackDelay</span>(<span class="st">&quot;8n&quot;</span><span class="op">,</span> <span class="fl">0.5</span>)<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Connect the synth to the effect</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>synth<span class="op">.</span><span class="fu">connect</span>(feedbackDelay)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Bypass the effect (Dry signal only)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>feedbackDelay<span class="op">.</span><span class="at">wet</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Enable the effect (Fully wet signal)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>feedbackDelay<span class="op">.</span><span class="at">wet</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="preventing-audio-pops-with-smooth-transitions">Preventing Audio
+Pops with Smooth Transitions</h3>
+<p>Directly changing <code>wet.value = 0</code> can sometimes cause
+abrupt volume changes or minor clicks in the audio. Because
+<code>wet</code> is a <code>Tone.Signal</code> object, you can schedule
+smooth transitions to bypass or enable the effect over time using
+<code>rampTo()</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Smoothly bypass the effect over 0.5 seconds</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>feedbackDelay<span class="op">.</span><span class="at">wet</span><span class="op">.</span><span class="fu">rampTo</span>(<span class="dv">0</span><span class="op">,</span> <span class="fl">0.5</span>)<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Smoothly re-enable the effect over 0.3 seconds</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>feedbackDelay<span class="op">.</span><span class="at">wet</span><span class="op">.</span><span class="fu">rampTo</span>(<span class="dv">1</span><span class="op">,</span> <span class="fl">0.3</span>)<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="custom-bypass-with-tonecrossfade">Custom Bypass with
+<code>Tone.CrossFade</code></h3>
+<p>If you are using a custom utility node or a raw Web Audio API node
+that does not have a native <code>wet</code> property, you can build a
+bypass chain using <code>Tone.CrossFade</code>. This splits the signal
+into a wet path and a dry path, allowing you to fade between them.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> source <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Oscillator</span>()<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> crossFade <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">CrossFade</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Create the effect node</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> effect <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">BitCrusher</span>(<span class="dv">4</span>)<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Connect Dry signal to input 0</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>source<span class="op">.</span><span class="fu">connect</span>(crossFade<span class="op">.</span><span class="at">a</span>)<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Connect Wet signal (through effect) to input 1</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>source<span class="op">.</span><span class="fu">connect</span>(effect)<span class="op">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>effect<span class="op">.</span><span class="fu">connect</span>(crossFade<span class="op">.</span><span class="at">b</span>)<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Bypass effect (100% dry signal)</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>crossFade<span class="op">.</span><span class="at">fade</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">// Enable effect (100% wet signal)</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>crossFade<span class="op">.</span><span class="at">fade</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

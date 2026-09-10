@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Loop a Sample in Tone.js Tone.Player - tone.js</title>
+    <meta name="description" content="Looping audio samples is a fundamental technique in web audio development. This article provides a quick and direct guide on how to loop an audio sample loaded inside a Tone.Player in Tone.js, covering the essential properties needed to enable looping, s">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-loop-a-sample-in-tone-js-tone-player">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Loop a Sample in Tone.js Tone.Player - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-loop-a-sample-in-tone-js-tone-player" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Looping audio samples is a fundamental technique in web audio development. This article provides a quick and direct guide on how to loop an audio sample loaded inside a Tone.Player in Tone.js, covering the essential properties needed to enable looping, s" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-loop-a-sample-in-tonejs-toneplayer">How to Loop a Sample
+in Tone.js Tone.Player</h1>
+<p>Looping audio samples is a fundamental technique in web audio
+development. This article provides a quick and direct guide on how to
+loop an audio sample loaded inside a <code>Tone.Player</code> in
+Tone.js, covering the essential properties needed to enable looping, set
+specific start and end points, and control playback.</p>
+<p>To loop a sample in Tone.js, you need to set the <code>loop</code>
+property of your <code>Tone.Player</code> instance to <code>true</code>.
+By default, this property is set to <code>false</code>.</p>
+<h3 id="step-by-step-code-example">Step-by-Step Code Example</h3>
+<p>Here is the most direct way to load a sample, enable looping, and
+play it:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Create the player and load your audio file</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> player <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Player</span>({</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">url</span><span class="op">:</span> <span class="st">&quot;https://tonejs.github.io/audio/berlin/feudal.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">onload</span><span class="op">:</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Enable looping</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="at">loop</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 3. Start playback once the file is loaded</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="setting-specific-loop-points">Setting Specific Loop Points</h3>
+<p>If you do not want to loop the entire audio file, you can define
+specific start and end points for your loop using the
+<code>loopStart</code> and <code>loopEnd</code> properties. These values
+are defined in seconds (or Tone.js time values).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Enable looping</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">loop</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Set the loop to start at 1.5 seconds into the sample</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">loopStart</span> <span class="op">=</span> <span class="fl">1.5</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Set the loop to end at 4.0 seconds into the sample</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="at">loopEnd</span> <span class="op">=</span> <span class="fl">4.0</span><span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="key-properties-reference">Key Properties Reference</h3>
+<ul>
+<li><strong><code>player.loop</code></strong>: A boolean value
+(<code>true</code> or <code>false</code>). Set this to <code>true</code>
+to make the sample repeat indefinitely.</li>
+<li><strong><code>player.loopStart</code></strong>: Defines the
+timestamp (in seconds or time notation) where the loop interval
+begins.</li>
+<li><strong><code>player.loopEnd</code></strong>: Defines the timestamp
+(in seconds or time notation) where the loop interval ends and wraps
+back to <code>loopStart</code>.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

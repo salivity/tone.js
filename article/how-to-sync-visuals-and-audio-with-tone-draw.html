@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Sync Visuals and Audio with Tone.Draw - tone.js</title>
+    <meta name="description" content="When building interactive audio-visual web applications with Tone.js, keeping animations perfectly in sync with scheduled audio is a common challenge. This article explains what Tone.Draw is, how it solves the timing discrepancies between the Web Audio A">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-sync-visuals-and-audio-with-tone-draw">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Sync Visuals and Audio with Tone.Draw - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-sync-visuals-and-audio-with-tone-draw" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="When building interactive audio-visual web applications with Tone.js, keeping animations perfectly in sync with scheduled audio is a common challenge. This article explains what Tone.Draw is, how it solves the timing discrepancies between the Web Audio A" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-sync-visuals-and-audio-with-tonedraw">How to Sync Visuals
+and Audio with Tone.Draw</h1>
+<p>When building interactive audio-visual web applications with Tone.js,
+keeping animations perfectly in sync with scheduled audio is a common
+challenge. This article explains what <code>Tone.Draw</code> is, how it
+solves the timing discrepancies between the Web Audio API and the
+browser's rendering engine, and why it is the recommended solution for
+visual synchronization.</p>
+<h2 id="the-problem-audio-thread-vs-main-thread">The Problem: Audio
+Thread vs. Main Thread</h2>
+<p>To understand why <code>Tone.Draw</code> is necessary, you must
+understand how browsers handle audio and graphics.</p>
+<p>The Web Audio API runs on a dedicated, high-priority audio thread to
+ensure playback remains smooth and glitch-free. To achieve this, Tone.js
+schedules audio events slightly ahead of time (known as look-ahead).</p>
+<p>Conversely, visual updates (DOM manipulation, Canvas drawing, or
+WebGL rendering) run on the main JavaScript thread, which is governed by
+the browser's rendering budget (typically 60 frames per second via
+<code>requestAnimationFrame</code>).</p>
+<p>If you attempt to trigger a visual change directly inside a standard
+Tone.js audio event, like this:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">schedule</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This runs ahead of the actual audio playback!</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">document</span><span class="op">.</span><span class="at">body</span><span class="op">.</span><span class="at">style</span><span class="op">.</span><span class="at">backgroundColor</span> <span class="op">=</span> <span class="st">&quot;red&quot;</span><span class="op">;</span> </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<p>The visual change will occur too early because the JS code executes
+during the look-ahead period, before the speaker actually outputs the
+sound. This results in a noticeable delay between the visual flash and
+the audio event.</p>
+<h2 id="what-is-tonedraw">What is Tone.Draw?</h2>
+<p><code>Tone.Draw</code> is a specialized scheduling utility built into
+Tone.js. It bridges the gap between the high-precision audio timeline
+and the browser’s drawing timeline.</p>
+<p>Instead of executing visual code immediately during the look-ahead
+phase, <code>Tone.Draw</code> queues your visual callbacks and holds
+them. It then uses <code>requestAnimationFrame</code> to trigger those
+callbacks at the exact millisecond the audio event is actually heard by
+the user.</p>
+<h2 id="why-tonedraw-is-recommended">Why Tone.Draw is Recommended</h2>
+<h3 id="1-eliminates-visual-lag">1. Eliminates Visual Lag</h3>
+<p>By syncing the visual execution to the actual playback time
+(<code>time</code>), <code>Tone.Draw</code> eliminates the latency gap.
+Your animations, progress bars, and flashing elements will align
+perfectly with the beats, synths, or samples.</p>
+<h3 id="2-optimizes-performance">2. Optimizes Performance</h3>
+<p><code>Tone.Draw</code> internally utilizes
+<code>requestAnimationFrame</code>. This ensures that visual updates
+only occur when the browser is ready to repaint the screen, preventing
+unnecessary layout thrashing, reducing CPU overhead, and keeping
+animations fluid.</p>
+<h3 id="3-handles-thread-synchronization-automatically">3. Handles
+Thread Synchronization Automatically</h3>
+<p>Manually calculating the latency difference between the AudioContext
+clock and the performance clock is complex and prone to errors.
+<code>Tone.Draw</code> abstracts this math away, allowing you to pass
+the audio <code>time</code> parameter directly to the scheduler.</p>
+<h2 id="how-to-use-tonedraw">How to Use Tone.Draw</h2>
+<p>To use <code>Tone.Draw</code>, wrap your visual update logic inside a
+<code>Tone.Draw.schedule()</code> block within your audio event
+listener. Always pass the audio <code>time</code> variable as the second
+argument:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a repeating synth note</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">scheduleRepeat</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Sync the visual change with the audio event</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    Tone<span class="op">.</span><span class="at">Draw</span><span class="op">.</span><span class="fu">schedule</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">// This block runs precisely when the sound is heard</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">triggerVisualPulse</span>()<span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<p>By routing all visual updates through <code>Tone.Draw</code>, you
+ensure your web application delivers a cohesive, tight, and professional
+multimedia experience.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

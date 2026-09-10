@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Random Probability in Tone.js Note Triggers - tone.js</title>
+    <meta name="description" content="Adding randomness to your web audio projects creates more dynamic, generative, and organic musical patterns. This article explains how to implement a probability factor for note triggers in Tone.js using JavaScript’s conditional logic within scheduling">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/implementing-random-probability-in-tone-js-note-triggers">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Implementing Random Probability in Tone.js Note Triggers - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/implementing-random-probability-in-tone-js-note-triggers" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adding randomness to your web audio projects creates more dynamic, generative, and organic musical patterns. This article explains how to implement a probability factor for note triggers in Tone.js using JavaScript’s conditional logic within scheduling" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1
+id="implementing-random-probability-in-tonejs-note-triggers">Implementing
+Random Probability in Tone.js Note Triggers</h1>
+<p>Adding randomness to your web audio projects creates more dynamic,
+generative, and organic musical patterns. This article explains how to
+implement a probability factor for note triggers in Tone.js using
+JavaScript’s conditional logic within scheduling blocks, allowing you to
+control the exact likelihood of a note playing.</p>
+<h2 id="the-core-concept-of-probability">The Core Concept of
+Probability</h2>
+<p>To implement random chance in Tone.js, you compare a threshold value
+(the probability) against a randomly generated decimal between 0 and 1
+using <code>Math.random()</code>.</p>
+<p>If the generated number is lower than your target probability, the
+note triggers. Otherwise, the step is skipped.</p>
+<ul>
+<li><strong>1.0 Probability:</strong> 100% chance (always plays)</li>
+<li><strong>0.5 Probability:</strong> 50% chance (plays half the
+time)</li>
+<li><strong>0.1 Probability:</strong> 10% chance (rarely plays)</li>
+<li><strong>0.0 Probability:</strong> 0% chance (never plays)</li>
+</ul>
+<hr />
+<h2 id="method-1-global-probability-in-a-sequence">Method 1: Global
+Probability in a Sequence</h2>
+<p>If you want a uniform probability applied to every note in a
+sequence, you can place a simple conditional check inside the
+<code>Tone.Sequence</code> callback function.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize a synth and connect it to the main output</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Set a global probability (e.g., 70% chance)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> playProbability <span class="op">=</span> <span class="fl">0.7</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a sequence of notes</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sequence <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sequence</span>((time<span class="op">,</span> note) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Generate a random number and compare it to the probability</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="bu">Math</span><span class="op">.</span><span class="fu">random</span>() <span class="op">&lt;</span> playProbability) {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(note<span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> [<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span><span class="op">,</span> <span class="st">&quot;B4&quot;</span>]<span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the sequence and transport</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="method-2-per-note-probability">Method 2: Per-Note
+Probability</h2>
+<p>For more complex compositions, you might want certain notes to
+trigger more often than others (such as a strong downbeat vs. a weak
+syncopated note). You can achieve this by passing objects containing
+both the pitch and the specific probability value into the sequence.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Define steps with individual note names and playback probabilities</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> pattern <span class="op">=</span> [</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    { <span class="dt">note</span><span class="op">:</span> <span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="dt">probability</span><span class="op">:</span> <span class="fl">1.0</span> }<span class="op">,</span> <span class="co">// Always plays on the downbeat</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    { <span class="dt">note</span><span class="op">:</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="dt">probability</span><span class="op">:</span> <span class="fl">0.4</span> }<span class="op">,</span> <span class="co">// Occasional accent</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    { <span class="dt">note</span><span class="op">:</span> <span class="st">&quot;G4&quot;</span><span class="op">,</span> <span class="dt">probability</span><span class="op">:</span> <span class="fl">0.8</span> }<span class="op">,</span> <span class="co">// Highly likely to play</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    { <span class="dt">note</span><span class="op">:</span> <span class="st">&quot;B4&quot;</span><span class="op">,</span> <span class="dt">probability</span><span class="op">:</span> <span class="fl">0.2</span> }  <span class="co">// Rare variation</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>]<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sequence <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sequence</span>((time<span class="op">,</span> step) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (step <span class="op">&amp;&amp;</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">random</span>() <span class="op">&lt;</span> step<span class="op">.</span><span class="at">probability</span>) {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(step<span class="op">.</span><span class="at">note</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> pattern<span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="method-3-randomizing-note-selection-weighted-random">Method 3:
+Randomizing Note Selection (Weighted Random)</h2>
+<p>Instead of choosing whether or not to play a single note, you can use
+probability to choose <em>which</em> note plays from an array of
+options.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> chords <span class="op">=</span> [<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span>]<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> occasionalNote <span class="op">=</span> <span class="st">&quot;B4&quot;</span><span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> loop <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Loop</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 80% chance to play a standard chord note, 20% chance to play the accent note</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> chosenNote <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">random</span>() <span class="op">&lt;</span> <span class="fl">0.8</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">?</span> chords[<span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">random</span>() <span class="op">*</span> chords<span class="op">.</span><span class="at">length</span>)]</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">:</span> occasionalNote<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(chosenNote<span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>loop<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

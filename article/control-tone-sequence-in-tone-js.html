@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Tone.Sequence in Tone.js - tone.js</title>
+    <meta name="description" content="This article provides a quick and practical guide on how to pause, resume, and stop a running Tone.Sequence in Tone.js. You will learn how to manipulate individual sequences as well as how to use the global Tone.Transport to control playback states seaml">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/control-tone-sequence-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Control Tone.Sequence in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/control-tone-sequence-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a quick and practical guide on how to pause, resume, and stop a running Tone.Sequence in Tone.js. You will learn how to manipulate individual sequences as well as how to use the global Tone.Transport to control playback states seaml" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="control-tonesequence-in-tonejs">Control Tone.Sequence in
+Tone.js</h1>
+<p>This article provides a quick and practical guide on how to pause,
+resume, and stop a running <code>Tone.Sequence</code> in Tone.js. You
+will learn how to manipulate individual sequences as well as how to use
+the global <code>Tone.Transport</code> to control playback states
+seamlessly.</p>
+<hr />
+<p>In Tone.js, a <code>Tone.Sequence</code> relies on the global
+<code>Tone.Transport</code> to drive its timing. Because of this
+relationship, controlling the playback state of a sequence involves a
+mix of sequence-specific methods and global Transport controls.</p>
+<h3 id="how-to-start-a-sequence">How to Start a Sequence</h3>
+<p>Before you can pause, resume, or stop a sequence, it must be
+scheduled and the Transport must be running.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> notes <span class="op">=</span> [<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span><span class="op">,</span> <span class="st">&quot;B4&quot;</span>]<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sequence <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sequence</span>((time<span class="op">,</span> note) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(note<span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> notes<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule the sequence to start immediately</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the audio context and the transport</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> Tone<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="how-to-pause-and-resume">How to Pause and Resume</h3>
+<p>To pause and resume a sequence while keeping its current playback
+position, you must control the global <code>Tone.Transport</code>.</p>
+<h4 id="1-pause-playback">1. Pause Playback</h4>
+<p>Pausing the Transport freezes the timeline. The sequence will stop
+playing but will remember its exact position.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Pauses the sequence and all other scheduled events</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">pause</span>()<span class="op">;</span></span></code></pre></div>
+<h4 id="2-resume-playback">2. Resume Playback</h4>
+<p>To resume the sequence from where it was paused, simply start the
+Transport again.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Resumes playback from the paused position</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="how-to-stop-a-sequence">How to Stop a Sequence</h3>
+<p>Stopping can be done at either the sequence level (stopping just one
+loop) or the Transport level (stopping all audio).</p>
+<h4 id="1-stop-an-individual-sequence">1. Stop an Individual
+Sequence</h4>
+<p>If you want to stop a specific sequence while letting other elements
+in your application continue to play, use the <code>.stop()</code>
+method on the sequence itself.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Stops the sequence from playing</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="fu">stop</span>()<span class="op">;</span></span></code></pre></div>
+<p><em>Note: If you call <code>sequence.start()</code> again after
+stopping it, the sequence will restart from the beginning of its
+loop.</em></p>
+<h4 id="2-stop-the-global-transport">2. Stop the Global Transport</h4>
+<p>Stopping the Transport stops all scheduled events and resets the
+timeline position back to <code>0</code>.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Stops all playback and resets the playhead to the beginning</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">stop</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="alternative-pausing-an-individual-sequence-muting">Alternative:
+Pausing an Individual Sequence (Muting)</h3>
+<p>If you have multiple sequences running but only want to "pause" one
+of them without stopping the entire Transport, the cleanest approach is
+to use the <code>mute</code> property. This keeps the sequence running
+in the background but silences its output.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// &quot;Pause&quot; the individual sequence by muting it</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="at">mute</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">// &quot;Resume&quot; the individual sequence by unmuting it</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>sequence<span class="op">.</span><span class="at">mute</span> <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

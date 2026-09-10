@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.Transport.start vs Tone.start in Tone.js - tone.js</title>
+    <meta name="description" content="In Tone.js, a popular Web Audio framework, Tone.start() and Tone.Transport.start() serve two entirely different purposes despite their similar names. While Tone.start() is used to initialize the global web audio context in compliance with browser securit">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-transport-start-vs-tone-start-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.Transport.start vs Tone.start in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-transport-start-vs-tone-start-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In Tone.js, a popular Web Audio framework, Tone.start() and Tone.Transport.start() serve two entirely different purposes despite their similar names. While Tone.start() is used to initialize the global web audio context in compliance with browser securit" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonetransportstart-vs-tonestart-in-tonejs">Tone.Transport.start
+vs Tone.start in Tone.js</h1>
+<p>In Tone.js, a popular Web Audio framework, <code>Tone.start()</code>
+and <code>Tone.Transport.start()</code> serve two entirely different
+purposes despite their similar names. While <code>Tone.start()</code> is
+used to initialize the global web audio context in compliance with
+browser security policies, <code>Tone.Transport.start()</code> controls
+the timeline-based playback of scheduled musical events like loops,
+synths, and sequences. Understanding this distinction is crucial for
+preventing silent audio issues and managing musical time in your web
+applications.</p>
+<hr />
+<h3 id="tonestart">Tone.start()</h3>
+<p><code>Tone.start()</code> is a function that initializes and resumes
+the underlying browser Web Audio Context
+(<code>AudioContext</code>).</p>
+<p>Modern web browsers block audio from playing automatically to prevent
+intrusive ads and unwanted noise. To play any sound, a user must
+interact with the page (such as clicking a button or tapping the
+screen). <code>Tone.start()</code> must be called inside this
+user-initiated event listener to tell the browser that the user has
+explicitly consented to audio playback.</p>
+<ul>
+<li><strong>Purpose:</strong> Enables the Web Audio API and wakes up the
+audio context.</li>
+<li><strong>When to use:</strong> Once, at the very beginning of user
+interaction (e.g., on a "Start" or "Play" button click).</li>
+<li><strong>Return value:</strong> It returns a Promise that resolves
+when the audio context is successfully running.</li>
+</ul>
+<p><strong>Example Usage:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> button <span class="op">=</span> <span class="bu">document</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">&#39;button&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>button<span class="op">.</span><span class="fu">addEventListener</span>(<span class="st">&#39;click&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This unlocks the browser&#39;s audio context</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> Tone<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Audio context is active&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Now you can play sounds</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="tonetransportstart">Tone.Transport.start()</h3>
+<p><code>Tone.Transport.start()</code> controls the
+<code>Tone.Transport</code> object, which represents the master musical
+timeline of your Tone.js application.</p>
+<p>The Transport is responsible for keeping track of time in beats,
+measures, and bars. It allows you to schedule events, sync loops, and
+run step sequencers at a specific tempo (BPM). Calling
+<code>Tone.Transport.start()</code> starts this internal clock, causing
+any scheduled musical events to begin playing in sync.</p>
+<ul>
+<li><strong>Purpose:</strong> Starts the master musical
+clock/timeline.</li>
+<li><strong>When to use:</strong> Whenever you want to start playing
+back scheduled events, loops, or sequences.</li>
+<li><strong>Prerequisite:</strong> You must have already started the
+audio context using <code>Tone.start()</code> before you can hear
+anything scheduled on the Transport.</li>
+</ul>
+<p><strong>Example Usage:</strong></p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a repeating loop</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> loop <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Loop</span>(time <span class="kw">=&gt;</span> {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the timeline clock so the loop plays</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h3 id="key-differences-summary">Key Differences Summary</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">Tone.start()</th>
+<th style="text-align: left;">Tone.Transport.start()</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Primary Role</strong></td>
+<td style="text-align: left;">Unlocks browser audio / starts the audio
+engine.</td>
+<td style="text-align: left;">Starts the musical timeline (clock, BPM,
+and scheduling).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Execution Trigger</strong></td>
+<td style="text-align: left;">Must be triggered by a direct user
+interaction (click/tap).</td>
+<td style="text-align: left;">Can be triggered programmatically at any
+time (after the engine is running).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Scope</strong></td>
+<td style="text-align: left;">Global audio context.</td>
+<td style="text-align: left;">Temporal event scheduling (loops,
+sequences, timelines).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Frequency of Use</strong></td>
+<td style="text-align: left;">Typically called once per session.</td>
+<td style="text-align: left;">Can be started, paused, stopped, and
+restarted multiple times.</td>
+</tr>
+</tbody>
+</table></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

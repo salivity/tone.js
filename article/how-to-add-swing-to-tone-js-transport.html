@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Add Swing to Tone.js Transport - tone.js</title>
+    <meta name="description" content="Adding a natural groove or swing to your digital audio projects can make programmed beats sound much more human and musical. This article explains how to configure and control the swing feel using Tone.Transport in Tone.js, covering key properties like s">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-add-swing-to-tone-js-transport">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Add Swing to Tone.js Transport - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-add-swing-to-tone-js-transport" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Adding a natural groove or swing to your digital audio projects can make programmed beats sound much more human and musical. This article explains how to configure and control the swing feel using Tone.Transport in Tone.js, covering key properties like s" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-add-swing-to-tonejs-transport">How to Add Swing to
+Tone.js Transport</h1>
+<p>Adding a natural groove or swing to your digital audio projects can
+make programmed beats sound much more human and musical. This article
+explains how to configure and control the swing feel using
+<code>Tone.Transport</code> in Tone.js, covering key properties like
+<code>swing</code> and <code>swingSubdivision</code>, and providing a
+practical code example to get your sequences grooving.</p>
+<h2 id="understanding-swing-in-tonejs">Understanding Swing in
+Tone.js</h2>
+<p>In music production, "swing" delays the timing of every second note
+(the off-beat) in a specific grid. This creates a skipping or shuffling
+rhythm instead of a rigid, straight beat.</p>
+<p>In Tone.js, swing is managed globally via
+<code>Tone.Transport</code>. It affects all scheduled events that rely
+on the Transport's timeline—such as <code>Tone.Sequence</code>,
+<code>Tone.Loop</code>, and <code>Tone.Part</code>—provided they are
+scheduled using subdivisions that match or divide the swing grid.</p>
+<h2 id="key-transport-properties">Key Transport Properties</h2>
+<p>To implement swing, you need to configure two primary properties on
+<code>Tone.Transport</code>:</p>
+<ol type="1">
+<li><strong><code>Tone.Transport.swing</code></strong>: This property
+takes a normalized value between <code>0</code> (no swing, completely
+straight) and <code>1</code> (maximum swing). A value of
+<code>0.5</code> is a common starting point for a classic half-triplet
+swing feel.</li>
+<li><strong><code>Tone.Transport.swingSubdivision</code></strong>: This
+defines the grid size that will be swung. It is represented as a
+subdivision string, such as <code>'8n'</code> (eighth notes) or
+<code>'16n'</code> (sixteenth notes). The default value is
+<code>'16n'</code>.</li>
+</ol>
+<h2 id="step-by-step-implementation">Step-by-Step Implementation</h2>
+<p>To apply swing to your playback, set up your audio source, configure
+the Transport's swing settings, schedule your notes, and start the
+Transport.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="op">*</span> <span class="im">as</span> Tone <span class="im">from</span> <span class="st">&#39;tone&#39;</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Create an instrument</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">MembraneSynth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Configure the swing settings on the Transport</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">swing</span> <span class="op">=</span> <span class="fl">0.6</span><span class="op">;</span>            <span class="co">// Swing amount (0 to 1)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">swingSubdivision</span> <span class="op">=</span> <span class="st">&#39;8n&#39;</span><span class="op">;</span> <span class="co">// Apply swing to eighth notes</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">bpm</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">120</span><span class="op">;</span>         <span class="co">// Set tempo</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. Create a sequence of eighth notes</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">// The sequence callback receives the precise &#39;time&#39; parameter</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> seq <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sequence</span>((time<span class="op">,</span> note) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(note<span class="op">,</span> <span class="st">&#39;8n&#39;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> [<span class="st">&#39;C2&#39;</span><span class="op">,</span> <span class="st">&#39;E2&#39;</span><span class="op">,</span> <span class="st">&#39;G2&#39;</span><span class="op">,</span> <span class="st">&#39;B2&#39;</span>]<span class="op">,</span> <span class="st">&#39;8n&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the sequence and the transport</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>seq<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<h2 id="crucial-rules-for-swing-to-work">Crucial Rules for Swing to
+Work</h2>
+<p>For the swing effect to be audible in your application, you must
+follow these rules:</p>
+<ul>
+<li><strong>Use the <code>time</code> argument</strong>: When triggering
+sounds inside a loop or sequence callback, you must pass the
+<code>time</code> parameter (provided by the callback) into your synth's
+trigger method (e.g.,
+<code>synth.triggerAttackRelease(note, duration, time)</code>). If you
+omit the <code>time</code> argument, Tone.js will play the note
+immediately on the audio thread, bypassing the Transport's swung
+schedule.</li>
+<li><strong>Match subdivisions</strong>: The events in your sequence
+must align with the <code>swingSubdivision</code>. For example, if your
+<code>swingSubdivision</code> is set to <code>'8n'</code>, notes
+scheduled on quarter notes (<code>'4n'</code>) will not swing because
+they land on the strong, on-beat subdivisions. Only the intervening
+eighth notes will be delayed.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

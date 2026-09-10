@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Tone.FMSynth and Tone.js Frequency Modulation - tone.js</title>
+    <meta name="description" content="This article explores Tone.FMSynth, a powerful synthesizer class in the Tone.js web audio library. You will learn the core concepts of frequency modulation (FM) synthesis, how the carrier and modulator oscillators interact, and how to configure and use T">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/guide-to-tone-fmsynth-and-tone-js-frequency-modulation">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Guide to Tone.FMSynth and Tone.js Frequency Modulation - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/guide-to-tone-fmsynth-and-tone-js-frequency-modulation" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores Tone.FMSynth, a powerful synthesizer class in the Tone.js web audio library. You will learn the core concepts of frequency modulation (FM) synthesis, how the carrier and modulator oscillators interact, and how to configure and use T" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="guide-to-tonefmsynth-and-tonejs-frequency-modulation">Guide to
+Tone.FMSynth and Tone.js Frequency Modulation</h1>
+<p>This article explores <code>Tone.FMSynth</code>, a powerful
+synthesizer class in the Tone.js web audio library. You will learn the
+core concepts of frequency modulation (FM) synthesis, how the carrier
+and modulator oscillators interact, and how to configure and use
+<code>Tone.FMSynth</code> to create dynamic, metallic, and complex
+digital sounds in your web applications.</p>
+<h2 id="what-is-frequency-modulation-synthesis">What is Frequency
+Modulation Synthesis?</h2>
+<p>Frequency Modulation (FM) synthesis is a method of audio synthesis
+where the frequency of a simple waveform (called the
+<strong>carrier</strong>) is modulated by the frequency of another
+waveform (called the <strong>modulator</strong>).</p>
+<p>When the modulator's frequency is low (typically below 20 Hz), the
+result is a vibrato effect. However, when the modulator's frequency
+enters the audible range (above 20 Hz), our ears no longer perceive it
+as a pitch shift. Instead, the modulation creates new frequencies called
+sidebands, resulting in a rich, complex timbre. FM synthesis is famous
+for producing bright, metallic, bell-like tones, brass instruments, and
+deep, digital basslines.</p>
+<h2 id="understanding-tonefmsynth">Understanding Tone.FMSynth</h2>
+<p>In Tone.js, <code>Tone.FMSynth</code> is a pre-packaged instrument
+that simplifies FM synthesis. It coordinates two internal
+synthesizers:</p>
+<ol type="1">
+<li><strong>The Carrier:</strong> The main synthesizer that generates
+the audible output.</li>
+<li><strong>The Modulator:</strong> The secondary synthesizer that
+modulates the frequency of the carrier.</li>
+</ol>
+<p>Both the carrier and the modulator have their own independent
+envelopes, allowing you to shape how the timbre changes over time.</p>
+<h3 id="key-parameters-of-tonefmsynth">Key Parameters of
+Tone.FMSynth</h3>
+<p>To control the timbre of <code>Tone.FMSynth</code>, Tone.js exposes
+several crucial properties:</p>
+<ul>
+<li><strong>harmonicity:</strong> This is the ratio between the
+modulator frequency and the carrier frequency (<span
+class="math inline">\(f_{modulator} / f_{carrier}\)</span>). For
+example, if the carrier pitch is 440 Hz and the harmonicity is set to 2,
+the modulator will run at 880 Hz. Whole numbers generate harmonic,
+consonant sounds, while decimal values (like 1.414) generate inharmonic,
+metallic, or bell-like sounds.</li>
+<li><strong>modulationIndex:</strong> This value determines the
+amplitude of the modulator. In practical terms, the modulation index
+controls the depth of the modulation. A low modulation index produces a
+mellow, simple sound (close to a pure sine wave), while a high
+modulation index adds more sidebands, creating a brighter, harsher, and
+more complex sound.</li>
+<li><strong>oscillator and modulation:</strong> You can define the type
+of waveform for both the carrier and modulator (e.g., sine, square,
+triangle, or sawtooth).</li>
+<li><strong>envelope and modulationEnvelope:</strong> These control the
+Amplitude Envelope (attack, decay, sustain, release) for the carrier and
+modulator respectively. Adjusting the <code>modulationEnvelope</code>
+allows the timbre of the sound to evolve over the duration of a
+note.</li>
+</ul>
+<h2 id="implementing-tonefmsynth-in-code">Implementing Tone.FMSynth in
+Code</h2>
+<p>To use <code>Tone.FMSynth</code>, you instantiate the synthesizer,
+configure its properties, connect it to the main audio output, and
+trigger a note.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create and configure Tone.FMSynth</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fmSynth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">FMSynth</span>({</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">harmonicity</span><span class="op">:</span> <span class="dv">3</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">modulationIndex</span><span class="op">:</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">detune</span><span class="op">:</span> <span class="dv">0</span><span class="op">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">oscillator</span><span class="op">:</span> {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;sine&quot;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">envelope</span><span class="op">:</span> {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.01</span><span class="op">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.3</span><span class="op">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sustain</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">release</span><span class="op">:</span> <span class="fl">1.2</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">modulation</span><span class="op">:</span> {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;square&quot;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">modulationEnvelope</span><span class="op">:</span> {</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.5</span><span class="op">,</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sustain</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">release</span><span class="op">:</span> <span class="fl">0.5</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">// Trigger a C4 note for the duration of a quarter note</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>fmSynth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<p>In this example, because the <code>modulationEnvelope</code> has a
+longer attack time (0.5 seconds) than the carrier's envelope (0.01
+seconds), the sound will start as a clean sine wave and gradually grow
+brighter and more complex as the modulator's output level rises.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

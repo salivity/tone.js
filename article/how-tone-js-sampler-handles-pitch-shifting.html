@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Tone.js Sampler Handles Pitch Shifting - tone.js</title>
+    <meta name="description" content="This article explains how Tone.Sampler handles pitch-shifting when triggering samples in the Tone.js web audio library. You will learn how the sampler uses playback rate manipulation to alter pitch, how it interpolates between mapped audio files, and how">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-tone-js-sampler-handles-pitch-shifting">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Tone.js Sampler Handles Pitch Shifting - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-tone-js-sampler-handles-pitch-shifting" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how Tone.Sampler handles pitch-shifting when triggering samples in the Tone.js web audio library. You will learn how the sampler uses playback rate manipulation to alter pitch, how it interpolates between mapped audio files, and how" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-tonejs-sampler-handles-pitch-shifting">How Tone.js Sampler
+Handles Pitch Shifting</h1>
+<p>This article explains how <code>Tone.Sampler</code> handles
+pitch-shifting when triggering samples in the Tone.js web audio library.
+You will learn how the sampler uses playback rate manipulation to alter
+pitch, how it interpolates between mapped audio files, and how to
+optimize your sample maps to maintain high-quality audio playback across
+different notes.</p>
+<h2 id="the-core-mechanism-playback-rate-manipulation">The Core
+Mechanism: Playback Rate Manipulation</h2>
+<p>Unlike real-time pitch-shifting effects that alter pitch while
+preserving the original duration (such as phase vocoders),
+<code>Tone.Sampler</code> shifts pitch by adjusting the <strong>playback
+rate</strong> of the audio buffer. This is the digital equivalent of
+speeding up or slowing down a vinyl record or tape machine.</p>
+<ul>
+<li><strong>Higher Pitches:</strong> To play a note higher than the
+original sample, Tone.js increases the playback rate. This makes the
+sample play faster, resulting in a higher pitch and a shorter
+duration.</li>
+<li><strong>Lower Pitches:</strong> To play a note lower than the
+original sample, Tone.js decreases the playback rate. This makes the
+sample play slower, resulting in a lower pitch and a longer
+duration.</li>
+</ul>
+<p>The relationship between the pitch shift in semitones (<span
+class="math inline">\(n\)</span>) and the playback rate is exponential,
+calculated using the formula:</p>
+<p><span class="math display">\[\text{Playback Rate} = 2^{(n /
+12)}\]</span></p>
+<p>For example, triggering a note one octave higher (+12 semitones)
+doubles the playback rate (2.0), while triggering a note one octave
+lower (-12 semitones) halves the playback rate (0.5).</p>
+<h2 id="multisampling-and-nearest-neighbor-interpolation">Multisampling
+and Nearest-Neighbor Interpolation</h2>
+<p>To prevent the unnatural sound stretching (often called the "chipmunk
+effect") that occurs when a single sample is pitched too far from its
+original frequency, <code>Tone.Sampler</code> utilizes
+multisampling.</p>
+<p>When you instantiate a <code>Tone.Sampler</code>, you pass it an
+object mapping specific midi notes to audio files:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sampler <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sampler</span>({</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">urls</span><span class="op">:</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">A1</span><span class="op">:</span> <span class="st">&quot;A1.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">A2</span><span class="op">:</span> <span class="st">&quot;A2.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">A3</span><span class="op">:</span> <span class="st">&quot;A3.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">A4</span><span class="op">:</span> <span class="st">&quot;A4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">baseUrl</span><span class="op">:</span> <span class="st">&quot;https://tonejs.github.io/audio/salamander/&quot;</span><span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">onload</span><span class="op">:</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        sampler<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C3&quot;</span><span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<p>When you trigger a note that does not have an explicit sample mapped
+to it (like <code>C3</code> in the example above),
+<code>Tone.Sampler</code> performs the following steps:</p>
+<ol type="1">
+<li><strong>Finds the Closest Sample:</strong> It looks through the
+mapped keys and identifies the closest available sample (in this case,
+<code>A2</code> or <code>A3</code>).</li>
+<li><strong>Calculates the Interval:</strong> It determines the interval
+distance in semitones between the target note (<code>C3</code>) and the
+source sample.</li>
+<li><strong>Applies the Playback Rate:</strong> It loads the closest
+sample's buffer and adjusts its playback rate based on that interval
+distance. If it chooses <code>A2</code> (110 Hz) to play <code>C3</code>
+(130.81 Hz), it speeds up the playback of <code>A2</code> by 3
+semitones.</li>
+</ol>
+<h2 id="best-practices-for-clean-pitch-shifting">Best Practices for
+Clean Pitch Shifting</h2>
+<p>Because <code>Tone.Sampler</code> relies on playback rate changes,
+pitch-shifting over wide intervals can degrade audio quality. To achieve
+the most natural sound:</p>
+<ul>
+<li><strong>Map Samples at Close Intervals:</strong> Provide a sample at
+least every minor third (3 semitones) or fourth (4 semitones). The
+smaller the gap between your mapped samples, the less pitch-shifting
+Tone.js has to perform, resulting in a more realistic instrument
+sound.</li>
+<li><strong>Use High-Quality Source Files:</strong> Because slowing down
+a sample stretches the digital samples further apart, using
+high-sample-rate source files (like 44.1kHz or 48kHz) helps prevent
+aliasing and high-frequency loss when pitching downwards.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

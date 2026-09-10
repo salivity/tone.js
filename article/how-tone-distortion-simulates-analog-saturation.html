@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Tone.Distortion Simulates Analog Saturation - tone.js</title>
+    <meta name="description" content="This article explains how the Tone.Distortion effect in Tone.js replicates the warm, harmonic characteristics of analog hardware saturation. It covers the underlying Web Audio API technology, the mathematical waveshaping curves used to achieve soft clipp">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-tone-distortion-simulates-analog-saturation">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Tone.Distortion Simulates Analog Saturation - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-tone-distortion-simulates-analog-saturation" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how the Tone.Distortion effect in Tone.js replicates the warm, harmonic characteristics of analog hardware saturation. It covers the underlying Web Audio API technology, the mathematical waveshaping curves used to achieve soft clipp" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-tonedistortion-simulates-analog-saturation">How
+Tone.Distortion Simulates Analog Saturation</h1>
+<p>This article explains how the <code>Tone.Distortion</code> effect in
+Tone.js replicates the warm, harmonic characteristics of analog hardware
+saturation. It covers the underlying Web Audio API technology, the
+mathematical waveshaping curves used to achieve soft clipping, and the
+role of oversampling in preventing digital artifacts.</p>
+<h2 id="the-web-audio-foundation-waveshapernode">The Web Audio
+Foundation: WaveShaperNode</h2>
+<p>Under the hood, <code>Tone.Distortion</code> is built upon the Web
+Audio API's native <code>WaveShaperNode</code>. Instead of dynamically
+calculating distortion in real-time for every single audio sample—which
+would be highly CPU-intensive—the <code>WaveShaperNode</code> uses a
+pre-calculated lookup table called a "distortion curve."</p>
+<p>When an audio signal passes through the node, the amplitude of each
+input sample is mapped directly to a corresponding output value defined
+by this curve. By shaping this curve, Tone.js can dictate exactly how
+the audio behaves as it gets louder.</p>
+<h2 id="simulating-soft-clipping-with-math">Simulating Soft Clipping
+with Math</h2>
+<p>Analog saturation occurs when an audio signal exceeds the physical
+limits of hardware circuits, such as vacuum tubes, transistors, or
+magnetic tape. Instead of cutting off the waveform abruptly (hard
+clipping), analog circuits gradually compress and round off the peaks of
+the waveform (soft clipping). This rounding adds pleasant, musical
+harmonics to the sound.</p>
+<p>To simulate this digitally, <code>Tone.Distortion</code> generates an
+S-shaped curve (a sigmoid function) using a mathematical formula. The
+standard formula used to generate this curve in Tone.js is:</p>
+<p><span class="math display">\[\text{curve}(x) = \frac{3 + d}{2} \cdot
+\frac{x \cdot 20 \cdot \frac{\pi}{180}}{1 + d \cdot |x \cdot 20 \cdot
+\frac{\pi}{180}|}\]</span></p>
+<p><em>(Where <span class="math inline">\(x\)</span> is the input sample
+and <span class="math inline">\(d\)</span> is the distortion
+amount.)</em></p>
+<p>This mathematical mapping ensures that:</p>
+<ul>
+<li><strong>Low-amplitude signals</strong> pass through relatively
+unchanged, preserving the quiet details of the audio.</li>
+<li><strong>High-amplitude signals</strong> are smoothly compressed and
+limited as they approach the boundaries of the curve, mimicking the
+natural compression of analog tape or tubes.</li>
+</ul>
+<h2 id="controlling-the-saturation-intensity">Controlling the Saturation
+Intensity</h2>
+<p>The primary property used to control this effect is
+<code>distortion</code>. This value ranges from <code>0</code> (no
+distortion) to <code>1</code> (maximum saturation).</p>
+<p>As you increase the <code>distortion</code> value, the slope of the
+transfer curve becomes steeper. This drives the input signal harder into
+the curved boundaries of the formula, resulting in more aggressive
+waveshaping, compressed dynamic range, and a richer profile of odd and
+even harmonics.</p>
+<h2 id="oversampling-for-analog-smoothness">Oversampling for Analog
+Smoothness</h2>
+<p>One major challenge when simulating analog distortion in a digital
+environment is <strong>aliasing</strong>. When a digital signal is
+distorted, it generates new high-frequency harmonics. If these harmonics
+exceed half the digital sampling rate (the Nyquist frequency), they
+bounce back into the audible spectrum as harsh, inharmonic digital
+noise.</p>
+<p>To combat this and preserve the smooth warmth of analog gear,
+<code>Tone.Distortion</code> includes an <code>oversampling</code>
+property, which can be set to <code>'none'</code>, <code>'2x'</code>, or
+<code>'4x'</code>.</p>
+<p>When oversampling is enabled (e.g., <code>'4x'</code>), the internal
+processing of the <code>WaveShaperNode</code> runs at four times the
+project's standard sample rate. The signal is upsampled, the
+analog-style distortion is applied, a low-pass filter removes the excess
+high-frequency harmonics that would cause aliasing, and the signal is
+downsampled back to the original rate. This results in a much cleaner,
+warmer, and more authentic analog saturation simulation.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

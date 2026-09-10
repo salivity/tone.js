@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Tone.Sequence Grid Dynamically in Tone.js - tone.js</title>
+    <meta name="description" content="This article explains how to dynamically alter the subdivision, grid, and playback speed of a Tone.Sequence in Tone.js during runtime. You will learn how to directly modify the subdivision property, utilize the playback rate for relative timing adjustmen">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/update-tone-sequence-grid-dynamically-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Update Tone.Sequence Grid Dynamically in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/update-tone-sequence-grid-dynamically-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to dynamically alter the subdivision, grid, and playback speed of a Tone.Sequence in Tone.js during runtime. You will learn how to directly modify the subdivision property, utilize the playback rate for relative timing adjustmen" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="update-tonesequence-grid-dynamically-in-tonejs">Update
+Tone.Sequence Grid Dynamically in Tone.js</h1>
+<p>This article explains how to dynamically alter the subdivision, grid,
+and playback speed of a <code>Tone.Sequence</code> in Tone.js during
+runtime. You will learn how to directly modify the subdivision property,
+utilize the playback rate for relative timing adjustments, and update
+the events array to keep your synthesizers and samplers perfectly in
+sync with changing musical rhythms.</p>
+<p>In Tone.js, a <code>Tone.Sequence</code> stepped loop is driven by a
+specific subdivision (such as <code>"4n"</code>, <code>"8n"</code>, or
+<code>"16n"</code>). Adjusting this grid dynamically allows you to
+create build-ups, tempo-halving effects, or complex generative rhythms
+without stopping the <code>Tone.Transport</code>.</p>
+<p>There are two primary methods to dynamically update the grid of an
+active sequence.</p>
+<hr />
+<h3 id="method-1-directly-updating-the-subdivision-property">Method 1:
+Directly Updating the <code>subdivision</code> Property</h3>
+<p>The most straightforward way to change the grid of a
+<code>Tone.Sequence</code> is by directly reassigning its
+<code>subdivision</code> property. Tone.js handles this update smoothly
+in real-time.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize a sequence with eighth notes</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> seq <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sequence</span>((time<span class="op">,</span> note) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(note<span class="op">,</span> <span class="st">&quot;0.1&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> [<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span><span class="op">,</span> <span class="st">&quot;B4&quot;</span>]<span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Dynamically change the grid to sixteenth notes</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">speedUpGrid</span>() {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    seq<span class="op">.</span><span class="at">subdivision</span> <span class="op">=</span> <span class="st">&quot;16n&quot;</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Dynamically change the grid to quarter notes</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">slowDownGrid</span>() {</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    seq<span class="op">.</span><span class="at">subdivision</span> <span class="op">=</span> <span class="st">&quot;4n&quot;</span><span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>When you update the <code>.subdivision</code> property, Tone.js
+recalculates the interval between each step of the sequence on the next
+tick, maintaining the overall timing of your application.</p>
+<hr />
+<h3 id="method-2-adjusting-the-playbackrate">Method 2: Adjusting the
+<code>playbackRate</code></h3>
+<p>If you want to speed up or slow down the grid relatively without
+hardcoding a new subdivision string, you can modify the
+<code>playbackRate</code> property. This property acts as a multiplier
+for the sequence's progress.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// A playbackRate of 1.0 is the default speed</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>seq<span class="op">.</span><span class="at">playbackRate</span> <span class="op">=</span> <span class="fl">1.0</span><span class="op">;</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Double the speed of the sequence (e.g., &quot;8n&quot; plays at the speed of &quot;16n&quot;)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>seq<span class="op">.</span><span class="at">playbackRate</span> <span class="op">=</span> <span class="fl">2.0</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">// Halve the speed of the sequence (e.g., &quot;8n&quot; plays at the speed of &quot;4n&quot;)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>seq<span class="op">.</span><span class="at">playbackRate</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">;</span></span></code></pre></div>
+<p>Using <code>playbackRate</code> is ideal for gradual accelerandos,
+ritardandos, or when you want to shift the grid relative to the master
+tempo using a slider control.</p>
+<hr />
+<h3 id="updating-the-events-array-alongside-the-grid">Updating the
+Events Array alongside the Grid</h3>
+<p>When changing subdivisions, the length of your sequence may no longer
+match the time signature or loop length you desire. You can dynamically
+update the <code>.events</code> array at the same time to match the new
+grid size.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Change grid to 16th notes and expand the sequence array to match</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">changeGridAndPattern</span>() {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    seq<span class="op">.</span><span class="at">subdivision</span> <span class="op">=</span> <span class="st">&quot;16n&quot;</span><span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    seq<span class="op">.</span><span class="at">events</span> <span class="op">=</span> [<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;D4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;F4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span><span class="op">,</span> <span class="st">&quot;A4&quot;</span><span class="op">,</span> <span class="st">&quot;B4&quot;</span><span class="op">,</span> <span class="st">&quot;C5&quot;</span>]<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Updating both properties simultaneously ensures your sequence remains
+musically coherent and fits perfectly within your grid structure.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

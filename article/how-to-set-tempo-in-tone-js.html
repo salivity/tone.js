@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Set Tempo in Tone.js - tone.js</title>
+    <meta name="description" content="Controlling the speed of your playback is fundamental to web audio development. This article provides a quick guide on how to set and manipulate the tempo (Beats Per Minute, or BPM) of a project in Tone.js, covering both static initialization and dynamic">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-set-tempo-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Set Tempo in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-set-tempo-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Controlling the speed of your playback is fundamental to web audio development. This article provides a quick guide on how to set and manipulate the tempo (Beats Per Minute, or BPM) of a project in Tone.js, covering both static initialization and dynamic" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-set-tempo-in-tonejs">How to Set Tempo in Tone.js</h1>
+<p>Controlling the speed of your playback is fundamental to web audio
+development. This article provides a quick guide on how to set and
+manipulate the tempo (Beats Per Minute, or BPM) of a project in Tone.js,
+covering both static initialization and dynamic, time-based adjustments
+during playback.</p>
+<h3 id="the-tonetransport-object">The Tone.Transport Object</h3>
+<p>In Tone.js, the tempo is managed globally by the
+<code>Tone.Transport</code> object. The Transport represents the
+timeline of your project, governing the playback, timing, and
+synchronization of scheduled audio events.</p>
+<h3 id="setting-a-static-tempo">Setting a Static Tempo</h3>
+<p>To set a basic, static tempo for your project, you modify the
+<code>value</code> property of <code>Tone.Transport.bpm</code>. The
+default tempo in Tone.js is 120 BPM.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Set the tempo to 140 Beats Per Minute</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">bpm</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">140</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the transport to play scheduled events at the new tempo</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<p>You can set this value at any point before or after starting the
+Transport.</p>
+<h3 id="changing-tempo-dynamically">Changing Tempo Dynamically</h3>
+<p>Because <code>Tone.Transport.bpm</code> is a <code>Tone.Signal</code>
+object, you do not have to settle for instant, abrupt tempo changes. You
+can schedule smooth tempo transitions over time, which is useful for
+creating accelerandos (speeding up) or ritardandos (slowing down).</p>
+<h4 id="1-instant-change-at-a-specific-time">1. Instant Change at a
+Specific Time</h4>
+<p>To schedule an instant tempo change at a precise point in the future,
+use <code>setValueAtTime</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Change the tempo to 100 BPM exactly 2 seconds from the current time</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">bpm</span><span class="op">.</span><span class="fu">setValueAtTime</span>(<span class="dv">100</span><span class="op">,</span> <span class="st">&quot;+2&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<h4 id="2-smooth-ramp-over-time">2. Smooth Ramp Over Time</h4>
+<p>To smoothly transition from the current tempo to a target tempo, use
+<code>rampTo</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Smoothly ramp the tempo to 160 BPM over the course of 4 seconds</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">bpm</span><span class="op">.</span><span class="fu">rampTo</span>(<span class="dv">160</span><span class="op">,</span> <span class="dv">4</span>)<span class="op">;</span></span></code></pre></div>
+<p>By leveraging these properties, you can easily control the timing and
+pacing of any interactive audio project in Tone.js.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

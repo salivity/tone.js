@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.Pattern Playback Patterns in Tone.js - tone.js</title>
+    <meta name="description" content="This article provides a clear guide to the playback patterns supported by the Tone.Pattern class in Tone.js. It explains how each pattern traverses an array of values—such as musical notes—to help you build dynamic arpeggios, generative melodies, and">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-pattern-playback-patterns-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.Pattern Playback Patterns in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-pattern-playback-patterns-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a clear guide to the playback patterns supported by the Tone.Pattern class in Tone.js. It explains how each pattern traverses an array of values—such as musical notes—to help you build dynamic arpeggios, generative melodies, and" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonepattern-playback-patterns-in-tonejs">Tone.Pattern Playback
+Patterns in Tone.js</h1>
+<p>This article provides a clear guide to the playback patterns
+supported by the <code>Tone.Pattern</code> class in Tone.js. It explains
+how each pattern traverses an array of values—such as musical notes—to
+help you build dynamic arpeggios, generative melodies, and structured
+sequences in your web audio applications.</p>
+<p>The <code>Tone.Pattern</code> class in Tone.js is designed to cycle
+through an array of values using a specified playback mathematical
+pattern. By default, it uses the <code>"up"</code> pattern, but you can
+configure it with several other built-in pattern types to change how the
+array is traversed.</p>
+<p>Below are the supported playback patterns you can pass into the
+<code>pattern</code> parameter of a <code>Tone.Pattern</code>
+instance.</p>
+<h3 id="standard-directional-patterns">Standard Directional
+Patterns</h3>
+<ul>
+<li><strong><code>"up"</code></strong>: Cycles through the array in
+ascending order (from index <code>0</code> to the end of the array, then
+loops back to the start).</li>
+<li><strong><code>"down"</code></strong>: Cycles through the array in
+descending order (from the last index down to index <code>0</code>, then
+loops back to the end).</li>
+</ul>
+<h3 id="bounce-patterns-with-repeat-endpoints">Bounce Patterns (With
+Repeat Endpoints)</h3>
+<ul>
+<li><strong><code>"upDown"</code></strong>: Traverses the array from
+start to end, and then back from end to start. This pattern repeats the
+boundary elements. For example, an array of <code>[1, 2, 3]</code> will
+play as <code>1, 2, 3, 3, 2, 1</code>.</li>
+<li><strong><code>"downUp"</code></strong>: Traverses the array from end
+to start, and then from start to end. Like <code>"upDown"</code>, it
+repeats the boundary elements. An array of <code>[1, 2, 3]</code> will
+play as <code>3, 2, 1, 1, 2, 3</code>.</li>
+</ul>
+<h3 id="alternate-patterns-without-repeat-endpoints">Alternate Patterns
+(Without Repeat Endpoints)</h3>
+<ul>
+<li><strong><code>"alternateUp"</code></strong>: Traverses the array up
+and down without repeating the boundary values. For example, an array of
+<code>[1, 2, 3]</code> will play as <code>1, 2, 3, 2</code>.</li>
+<li><strong><code>"alternateDown"</code></strong>: Traverses the array
+down and up without repeating the boundary values. For example, an array
+of <code>[1, 2, 3]</code> will play as <code>3, 2, 1, 2</code>.</li>
+</ul>
+<h3 id="random-and-algorithmic-patterns">Random and Algorithmic
+Patterns</h3>
+<ul>
+<li><strong><code>"random"</code></strong>: Selects a completely random
+index from the array at each step. Because selections are independent,
+the same value can be played multiple times in immediate
+succession.</li>
+<li><strong><code>"randomOnce"</code></strong>: Shuffles the array
+randomly and plays through every element exactly once. Once the shuffled
+array has been fully traversed, it shuffles again and repeats the
+process. This prevents consecutive duplicates and ensures every note in
+your set is heard before a repetition.</li>
+<li><strong><code>"randomWalk"</code></strong>: Starts at a random index
+and randomly steps either one index forward or one index backward on
+each tick. This creates a constrained, organic movement through your
+array values.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

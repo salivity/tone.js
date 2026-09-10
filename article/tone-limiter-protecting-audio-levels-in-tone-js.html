@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.Limiter: Protecting Audio Levels in Tone.js - tone.js</title>
+    <meta name="description" content="In web audio development, preventing signal distortion and protecting listeners' ears is crucial. This article explains how the Tone.Limiter class in Tone.js acts as a master safeguard by capping audio signals at a specified decibel threshold, preventing">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-limiter-protecting-audio-levels-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.Limiter: Protecting Audio Levels in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-limiter-protecting-audio-levels-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In web audio development, preventing signal distortion and protecting listeners' ears is crucial. This article explains how the Tone.Limiter class in Tone.js acts as a master safeguard by capping audio signals at a specified decibel threshold, preventing" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonelimiter-protecting-audio-levels-in-tonejs">Tone.Limiter:
+Protecting Audio Levels in Tone.js</h1>
+<p>In web audio development, preventing signal distortion and protecting
+listeners' ears is crucial. This article explains how the
+<code>Tone.Limiter</code> class in Tone.js acts as a master safeguard by
+capping audio signals at a specified decibel threshold, preventing
+digital clipping, and ensuring a polished, safe audio output.</p>
+<h2 id="what-is-tonelimiter">What is Tone.Limiter?</h2>
+<p><code>Tone.Limiter</code> is a specialized dynamic range processor in
+the Tone.js framework. It is essentially a compressor configured with a
+very high compression ratio (often infinity-to-one) and an extremely
+fast attack time. Its primary job is to act as an absolute ceiling for
+volume, ensuring that the audio signal never exceeds a designated
+decibel level.</p>
+<h2 id="how-it-protects-audio-levels">How It Protects Audio Levels</h2>
+<p>When working with multiple synthesizers, samplers, and effects in
+Tone.js, their combined output volumes can easily add up. If the total
+signal exceeds 0 dBFS (decibels relative to full scale), the browser's
+audio engine will truncate the waveform, resulting in harsh, unpleasant
+digital clipping.</p>
+<p><code>Tone.Limiter</code> protects your audio in two ways:</p>
+<ul>
+<li><strong>Preventing Digital Clipping:</strong> By setting the
+limiter's threshold just below the clipping point (for example, at -1 dB
+or -3 dB), you guarantee that the audio will never clip, preserving the
+integrity of the sound even during loud transients.</li>
+<li><strong>Safe Mastering:</strong> Placing a limiter at the very end
+of your audio chain (before the final destination) protects the
+listener's speakers or headphones from unexpected volume spikes caused
+by compounding audio nodes or feedback loops.</li>
+</ul>
+<h2 id="implementing-tonelimiter-in-code">Implementing Tone.Limiter in
+Code</h2>
+<p>To use <code>Tone.Limiter</code>, you instantiate the class, define
+the threshold, and connect your audio sources to it before routing the
+limiter to the main output.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a limiter with a threshold of -2 decibels</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> limiter <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Limiter</span>(<span class="op">-</span><span class="dv">2</span>)<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Connect your instrument or synth to the limiter</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">PolySynth</span>()<span class="op">.</span><span class="fu">connect</span>(limiter)<span class="op">;</span></span></code></pre></div>
+<p>By routing all synthesizers and sound sources through this limiter,
+any sudden volume spikes are automatically attenuated, keeping the
+overall mix safe, cohesive, and distortion-free.</p></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

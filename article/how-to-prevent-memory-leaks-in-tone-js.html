@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Prevent Memory Leaks in Tone.js - tone.js</title>
+    <meta name="description" content="Dynamically creating and destroying synth instances in Tone.js can quickly degrade browser performance and cause audio glitching if memory is not managed correctly. Because Tone.js operates on the Web Audio API, simply dereferencing a variable is not eno">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-to-prevent-memory-leaks-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Prevent Memory Leaks in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-to-prevent-memory-leaks-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Dynamically creating and destroying synth instances in Tone.js can quickly degrade browser performance and cause audio glitching if memory is not managed correctly. Because Tone.js operates on the Web Audio API, simply dereferencing a variable is not eno" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-to-prevent-memory-leaks-in-tonejs">How to Prevent Memory
+Leaks in Tone.js</h1>
+<p>Dynamically creating and destroying synth instances in Tone.js can
+quickly degrade browser performance and cause audio glitching if memory
+is not managed correctly. Because Tone.js operates on the Web Audio API,
+simply dereferencing a variable is not enough to trigger garbage
+collection. This article provides a direct, actionable guide on how to
+properly clean up synth instances, disconnect audio nodes, and free up
+system memory when dynamically managing audio in Tone.js.</p>
+<h2 id="why-tonejs-synths-cause-memory-leaks">Why Tone.js Synths Cause
+Memory Leaks</h2>
+<p>In standard JavaScript, setting a variable to <code>null</code> makes
+it eligible for garbage collection. However, Web Audio API nodes (which
+power Tone.js) are tied to the browser's audio graph. If a synth is
+still connected to the master output (<code>toDestination()</code>) or
+another effect, the browser maintains a reference to it in the audio
+thread.</p>
+<p>To completely remove a synth from memory, you must explicitly
+disconnect it from the audio graph, release its internal sub-nodes, and
+then delete your JavaScript references.</p>
+<h2 id="the-correct-disposal-workflow">The Correct Disposal
+Workflow</h2>
+<p>To prevent memory leaks when destroying a dynamically created synth,
+you must follow a three-step process: stop the audio, dispose of the
+node, and nullify the variable.</p>
+<h3 id="1-trigger-release-stop-active-audio">1. Trigger Release (Stop
+Active Audio)</h3>
+<p>If the synth is currently playing a note, call
+<code>triggerRelease()</code> to let the envelope finish. Destroying a
+synth mid-oscillation can cause audible clicks or pops.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>synth<span class="op">.</span><span class="fu">triggerRelease</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="2-dispose-of-the-synth">2. Dispose of the Synth</h3>
+<p>Tone.js provides a built-in <code>.dispose()</code> method on almost
+all of its classes. Calling <code>.dispose()</code> is the most critical
+step. It automatically disconnects the synth from any output nodes,
+stops internal oscillators, and cleans up internal Web Audio nodes.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>synth<span class="op">.</span><span class="fu">dispose</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="3-clear-javascript-references">3. Clear JavaScript
+References</h3>
+<p>After disposing of the synth, clear any references to it in your code
+so the JavaScript engine's garbage collector can reclaim the memory.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>synth <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="code-example-safe-dynamic-creation-and-destruction">Code
+Example: Safe Dynamic Creation and Destruction</h2>
+<p>Below is a practical implementation of creating a synth on demand and
+destroying it safely after use.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> activeSynths <span class="op">=</span> []<span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Function to dynamically create and play a synth</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">playDynamicSound</span>() {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    activeSynths<span class="op">.</span><span class="fu">push</span>(synth)<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Play a note</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Schedule cleanup after the note has finished playing (e.g., after 1 second)</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="pp">setTimeout</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">cleanupSynth</span>(synth)<span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span> <span class="dv">1000</span>)<span class="op">;</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">// Function to safely destroy the synth</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">cleanupSynth</span>(synth) {</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 1. Disconnect from the audio graph</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">disconnect</span>()<span class="op">;</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 2. Dispose of internal Tone.js Web Audio nodes</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">dispose</span>()<span class="op">;</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">// 3. Remove from local reference arrays</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    activeSynths <span class="op">=</span> activeSynths<span class="op">.</span><span class="fu">filter</span>(s <span class="kw">=&gt;</span> s <span class="op">!==</span> synth)<span class="op">;</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<hr />
+<h2 id="best-practices-for-dynamic-audio-in-tonejs">Best Practices for
+Dynamic Audio in Tone.js</h2>
+<ul>
+<li><strong>Avoid Excessive Creation:</strong> Instead of constantly
+creating and destroying synths, consider using a <strong>Synth
+Pool</strong>. Reuse a set number of pre-created synth instances by
+dynamically reassigning their parameters.</li>
+<li><strong>Dispose of Effect Chains:</strong> If you attach a dynamic
+synth to a private effect chain (e.g.,
+<code>synth.connect(reverb)</code>), you must dispose of the effect
+(<code>reverb.dispose()</code>) as well as the synth.</li>
+<li><strong>Monitor Memory:</strong> Use the browser's developer tools
+(such as the Performance or Memory tab in Chrome) to take heap snapshots
+and monitor the number of active Web Audio nodes to ensure your cleanup
+routines are working effectively.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.MonoSynth vs Tone.DuoSynth in Tone.js - tone.js</title>
+    <meta name="description" content="In web audio development with Tone.js, choosing the right synthesizer is crucial for shaping your application's sound design and managing performance. This article compares Tone.MonoSynth and Tone.DuoSynth, detailing their structural differences, paramet">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-monosynth-vs-tone-duosynth-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.MonoSynth vs Tone.DuoSynth in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-monosynth-vs-tone-duosynth-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In web audio development with Tone.js, choosing the right synthesizer is crucial for shaping your application's sound design and managing performance. This article compares Tone.MonoSynth and Tone.DuoSynth, detailing their structural differences, paramet" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonemonosynth-vs-toneduosynth-in-tonejs">Tone.MonoSynth vs
+Tone.DuoSynth in Tone.js</h1>
+<p>In web audio development with Tone.js, choosing the right synthesizer
+is crucial for shaping your application's sound design and managing
+performance. This article compares <code>Tone.MonoSynth</code> and
+<code>Tone.DuoSynth</code>, detailing their structural differences,
+parameter controls, and performance impacts to help you decide which
+synthesizer best fits your project's needs.</p>
+<h2 id="architectural-differences">Architectural Differences</h2>
+<p>The primary difference between <code>Tone.MonoSynth</code> and
+<code>Tone.DuoSynth</code> lies in their internal signal routing and
+voice architecture. While both are strictly monophonic (meaning they can
+only play one note at a time), they generate sound using different
+numbers of internal engines.</p>
+<h3 id="tonemonosynth">Tone.MonoSynth</h3>
+<p><code>Tone.MonoSynth</code> is a classic, single-voice subtractive
+synthesizer. Its architecture is straightforward and consists of:</p>
+<ul>
+<li><strong>One Oscillator:</strong> Generates the raw waveform (e.g.,
+sine, square, triangle, sawtooth).</li>
+<li><strong>One Amplitude Envelope (ADSR):</strong> Controls the volume
+of the sound over time.</li>
+<li><strong>One Filter:</strong> Shapes the frequency spectrum.</li>
+<li><strong>One Filter Envelope:</strong> Dynamically modulates the
+filter's cutoff frequency over time.</li>
+</ul>
+<p>Because of this single-oscillator signal path,
+<code>Tone.MonoSynth</code> produces a clean, focused, and traditional
+synthesizer sound.</p>
+<h3 id="toneduosynth">Tone.DuoSynth</h3>
+<p><code>Tone.DuoSynth</code> is a more complex monophonic synthesizer
+composed of <strong>two separate MonoSynth voices</strong> (internally
+labeled as <code>voice0</code> and <code>voice1</code>) routed in
+parallel into a single output. Its architecture features:</p>
+<ul>
+<li><strong>Two independent Oscillators, Filters, and
+Envelopes:</strong> You have complete control over two distinct sound
+sources within a single instrument interface.</li>
+<li><strong>Harmonicity Control:</strong> A dedicated parameter that
+sets the pitch ratio between <code>voice0</code> and
+<code>voice1</code>.</li>
+<li><strong>Vibrato Control:</strong> An integrated LFO (Low-Frequency
+Oscillator) that applies frequency modulation to both voices for
+pitch-bend effects.</li>
+</ul>
+<p>This dual-voice setup allows you to create rich, layered, detuned, or
+chorused sounds that are impossible to achieve with a standard
+<code>MonoSynth</code>.</p>
+<h2 id="key-parameters-and-code-comparison">Key Parameters and Code
+Comparison</h2>
+<p>Understanding how to control these instruments in your code
+highlights their practical differences.</p>
+<h3 id="monosynth-implementation">MonoSynth Implementation</h3>
+<p>Configuring a <code>Tone.MonoSynth</code> is simple because you are
+managing only one voice:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> monoSynth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">MonoSynth</span>({</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">oscillator</span><span class="op">:</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;sawtooth&quot;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">envelope</span><span class="op">:</span> {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.2</span><span class="op">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sustain</span><span class="op">:</span> <span class="fl">0.5</span><span class="op">,</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">release</span><span class="op">:</span> <span class="fl">0.8</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">filter</span><span class="op">:</span> {</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Q</span><span class="op">:</span> <span class="dv">6</span><span class="op">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;lowpass&quot;</span><span class="op">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">frequency</span><span class="op">:</span> <span class="dv">350</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">filterEnvelope</span><span class="op">:</span> {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.05</span><span class="op">,</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.2</span><span class="op">,</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">sustain</span><span class="op">:</span> <span class="fl">0.2</span><span class="op">,</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">release</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">baseFrequency</span><span class="op">:</span> <span class="dv">350</span><span class="op">,</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">octaves</span><span class="op">:</span> <span class="dv">4</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="duosynth-implementation">DuoSynth Implementation</h3>
+<p>Configuring a <code>Tone.DuoSynth</code> requires defining properties
+for both internal voices, alongside global settings like
+<code>harmonicity</code> and <code>vibratoAmount</code>:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> duoSynth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">DuoSynth</span>({</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">harmonicity</span><span class="op">:</span> <span class="fl">1.5</span><span class="op">,</span> <span class="co">// Sets the pitch ratio between voice0 and voice1</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vibratoAmount</span><span class="op">:</span> <span class="fl">0.5</span><span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vibratoRate</span><span class="op">:</span> <span class="dv">5</span><span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">voice0</span><span class="op">:</span> {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">oscillator</span><span class="op">:</span> { <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;sine&quot;</span> }<span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">envelope</span><span class="op">:</span> { <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.5</span> }</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">voice1</span><span class="op">:</span> {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">oscillator</span><span class="op">:</span> { <span class="dt">type</span><span class="op">:</span> <span class="st">&quot;sawtooth&quot;</span> }<span class="op">,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">envelope</span><span class="op">:</span> { <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.2</span><span class="op">,</span> <span class="dt">decay</span><span class="op">:</span> <span class="fl">0.8</span> }<span class="op">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">filterEnvelope</span><span class="op">:</span> { <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.01</span> }</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<h2 id="performance-and-cpu-usage">Performance and CPU Usage</h2>
+<p>Because <code>Tone.DuoSynth</code> runs two complete synthesizers
+under the hood plus additional LFO modulation, it is significantly more
+CPU-intensive than <code>Tone.MonoSynth</code>.</p>
+<p>If your application requires triggering multiple synthesizer
+instances simultaneously, or if you are targeting mobile devices with
+limited processing power, <code>Tone.MonoSynth</code> is the highly
+preferred, lightweight option.</p>
+<h2 id="summary-when-to-use-which">Summary: When to Use Which?</h2>
+<ul>
+<li><p><strong>Use Tone.MonoSynth if:</strong></p>
+<ul>
+<li>You need clean, classic synthesizer sounds like basic sub-basses,
+chip-tune melodies, or simple leads.</li>
+<li>You are building a complex application with many simultaneous audio
+nodes and need to optimize CPU performance.</li>
+<li>You want a simple, predictable synthesizer interface that is easy to
+map to UI controls.</li>
+</ul></li>
+<li><p><strong>Use Tone.DuoSynth if:</strong></p>
+<ul>
+<li>You want thick, rich, or evolving monophonic sounds (such as fat
+detuned basslines or textured cinematic leads).</li>
+<li>You want to easily create complex pitch relationships (using the
+<code>harmonicity</code> parameter) without manually syncing two
+separate instrument tracks.</li>
+<li>CPU performance is not a bottleneck for your project.</li>
+</ul></li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

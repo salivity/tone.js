@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syncing Visuals with Audio Clock in Tone.js - tone.js</title>
+    <meta name="description" content="This article explains how Tone.js bridges the gap between the high-precision Web Audio API clock and the main JavaScript rendering thread to synchronize visual events with audio playback. You will learn about the underlying challenges of browser-based au">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/syncing-visuals-with-audio-clock-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Syncing Visuals with Audio Clock in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/syncing-visuals-with-audio-clock-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how Tone.js bridges the gap between the high-precision Web Audio API clock and the main JavaScript rendering thread to synchronize visual events with audio playback. You will learn about the underlying challenges of browser-based au" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="syncing-visuals-with-audio-clock-in-tonejs">Syncing Visuals with
+Audio Clock in Tone.js</h1>
+<p>This article explains how Tone.js bridges the gap between the
+high-precision Web Audio API clock and the main JavaScript rendering
+thread to synchronize visual events with audio playback. You will learn
+about the underlying challenges of browser-based audio scheduling, how
+the <code>Tone.Draw</code> interface resolves these synchronization
+discrepancies, and how to implement frame-perfect visual callbacks in
+your web applications.</p>
+<h2 id="the-dual-clock-challenge-in-web-audio">The Dual-Clock Challenge
+in Web Audio</h2>
+<p>To understand how Tone.js manages synchronization, you must first
+understand the two distinct clocks operating in the browser:</p>
+<ol type="1">
+<li><strong>The Audio Clock
+(<code>AudioContext.currentTime</code>):</strong> This clock runs on a
+dedicated high-priority audio rendering thread. It is incredibly
+precise, measuring time in double-precision floats to ensure glitch-free
+audio output.</li>
+<li><strong>The Main Thread Clock (JavaScript / UI):</strong> This clock
+runs on the main browser thread alongside DOM manipulation, CSS
+rendering, and user input. It is prone to latency, garbage collection
+pauses, and frame drops.</li>
+</ol>
+<p>If you attempt to trigger visual updates directly from Web Audio
+events or standard JavaScript timers like <code>setInterval</code> or
+<code>setTimeout</code>, the visuals will quickly drift out of sync with
+the audio.</p>
+<h2 id="the-solution-tonedraw">The Solution: <code>Tone.Draw</code></h2>
+<p>Tone.js resolves this timing discrepancy using a specialized class
+called <code>Tone.Draw</code>. Instead of executing visual changes
+directly inside audio events, <code>Tone.Draw</code> allows you to
+schedule visual callbacks that are synchronized with the timeline of the
+audio clock.</p>
+<h3 id="how-tonedraw-works-under-the-hood">How <code>Tone.Draw</code>
+Works Under the Hood</h3>
+<p>The synchronization process relies on a combination of time
+scheduling and the browser's rendering loop:</p>
+<ol type="1">
+<li><strong>Scheduling the Callback:</strong> You schedule a visual
+event using <code>Tone.Draw.schedule(callback, time)</code>. The
+<code>time</code> parameter corresponds to the precise Web Audio clock
+time (usually passed from a <code>Tone.Transport</code> or
+<code>Tone.Sequence</code> event).</li>
+<li><strong>The Queue System:</strong> Tone.js places these callbacks
+into a time-sorted queue on the main thread.</li>
+<li><strong>The <code>requestAnimationFrame</code> Loop:</strong> On the
+main thread, <code>Tone.Draw</code> actively monitors the progress of
+the audio clock using the browser's <code>requestAnimationFrame</code>
+(rAF) loop. Because rAF is synced with the monitor's refresh rate
+(typically 60Hz or higher), it is the most efficient way to handle
+visual updates.</li>
+<li><strong>Execution:</strong> During each rAF tick,
+<code>Tone.Draw</code> compares the current time of the audio clock with
+the scheduled times in its queue. When the audio clock reaches or
+surpasses the scheduled time of a callback, the callback is executed on
+the main thread, triggering the visual update at the exact moment the
+sound is heard.</li>
+</ol>
+<h2 id="practical-implementation">Practical Implementation</h2>
+<p>To use <code>Tone.Draw</code>, you must schedule your visual updates
+inside a transport event or synthesizer trigger, passing the
+audio-thread <code>time</code> parameter to the draw schedule.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule a repetitive event on the Transport</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">scheduleRepeat</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 1. Trigger the audio event precisely on the audio thread</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 2. Schedule the visual callback to sync with the audio event</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  Tone<span class="op">.</span><span class="at">Draw</span><span class="op">.</span><span class="fu">schedule</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// This code runs on the main thread, safe for DOM updates</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    visualElement<span class="op">.</span><span class="at">classList</span><span class="op">.</span><span class="fu">add</span>(<span class="st">&quot;flash&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="pp">setTimeout</span>(() <span class="kw">=&gt;</span> visualElement<span class="op">.</span><span class="at">classList</span><span class="op">.</span><span class="fu">remove</span>(<span class="st">&quot;flash&quot;</span>)<span class="op">,</span> <span class="dv">100</span>)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;4n&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="best-practices-for-perfect-sync">Best Practices for Perfect
+Sync</h2>
+<ul>
+<li><strong>Always pass the <code>time</code> argument:</strong> Never
+call <code>Tone.Draw.schedule()</code> without passing the audio
+<code>time</code> parameter provided by the audio event. Omitting this
+parameter forces Tone.js to estimate the time, which defeats the purpose
+of the synchronization engine.</li>
+<li><strong>Keep callbacks lightweight:</strong> Because
+<code>Tone.Draw</code> callbacks execute on the main thread, heavy
+computations or synchronous layout thrashing inside the callback will
+cause frame drops, degrading both visual performance and audio
+stability. Keep DOM updates and WebGL rendering calls minimal and
+optimized.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

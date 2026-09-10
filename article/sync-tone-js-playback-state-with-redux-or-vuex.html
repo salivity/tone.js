@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sync Tone.js Playback State with Redux or Vuex - tone.js</title>
+    <meta name="description" content="This article explores efficient strategies for synchronizing the real-time audio playback state of Tone.js with global state management libraries like Redux or Vuex. Managing Web Audio API states alongside UI states presents unique challenges due to the">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/sync-tone-js-playback-state-with-redux-or-vuex">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sync Tone.js Playback State with Redux or Vuex - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/sync-tone-js-playback-state-with-redux-or-vuex" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores efficient strategies for synchronizing the real-time audio playback state of Tone.js with global state management libraries like Redux or Vuex. Managing Web Audio API states alongside UI states presents unique challenges due to the" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="sync-tonejs-playback-state-with-redux-or-vuex">Sync Tone.js
+Playback State with Redux or Vuex</h1>
+<p>This article explores efficient strategies for synchronizing the
+real-time audio playback state of Tone.js with global state management
+libraries like Redux or Vuex. Managing Web Audio API states alongside UI
+states presents unique challenges due to the high-frequency updates of
+audio scheduling versus the render cycles of web frameworks. You will
+learn how to handle this mismatch, implement event-driven updates, and
+optimize performance using throttled polling and middleware.</p>
+<h2 id="the-core-challenge-audio-thread-vs-ui-thread">The Core
+Challenge: Audio Thread vs. UI Thread</h2>
+<p>Tone.js operates on the Web Audio API's high-precision timeline,
+scheduling events ahead of time to ensure glitch-free audio playback.
+Redux and Vuex, on the other hand, are designed for UI state management
+where state changes trigger component re-renders.</p>
+<p>Directly dispatching actions to your global store on every tick of
+the Tone.js Transport (e.g., trying to sync
+<code>Tone.Transport.position</code> at 60fps) will degrade application
+performance, causing UI lag and audio stuttering. To prevent this, you
+must separate high-frequency audio data from macro-level playback
+states.</p>
+<h2 id="strategy-1-sync-macro-playback-states-only">Strategy 1: Sync
+Macro Playback States Only</h2>
+<p>The most robust strategy is to only sync discrete, macro-level
+playback states—such as <code>started</code>, <code>stopped</code>,
+<code>paused</code>, and <code>bpm</code>—with your global store.</p>
+<p>Instead of tracking the exact playback position in Redux or Vuex,
+listen for Transport events and dispatch state updates only when the
+state transitions:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Bind Tone.js Transport events to store dispatches</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;start&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  store<span class="op">.</span><span class="fu">dispatch</span>(<span class="st">&#39;playback/setPlaying&#39;</span><span class="op">,</span> <span class="kw">true</span>)<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;stop&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  store<span class="op">.</span><span class="fu">dispatch</span>(<span class="st">&#39;playback/setPlaying&#39;</span><span class="op">,</span> <span class="kw">false</span>)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  store<span class="op">.</span><span class="fu">dispatch</span>(<span class="st">&#39;playback/setProgress&#39;</span><span class="op">,</span> <span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">on</span>(<span class="st">&#39;pause&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  store<span class="op">.</span><span class="fu">dispatch</span>(<span class="st">&#39;playback/setPlaying&#39;</span><span class="op">,</span> <span class="kw">false</span>)<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>By keeping the global store informed only of play/pause/stop status,
+you minimize re-renders while allowing UI elements (like play buttons)
+to react correctly.</p>
+<h2
+id="strategy-2-use-requestanimationframe-for-position-polling">Strategy
+2: Use RequestAnimationFrame for Position Polling</h2>
+<p>If you need to display a progress bar or playhead position in the UI,
+do not dispatch the position to Redux or Vuex on every frame. Instead,
+initiate a local UI polling loop only when the playback state is
+active.</p>
+<ol type="1">
+<li>Store the <code>isPlaying</code> boolean in Redux/Vuex.</li>
+<li>In your UI component, watch the <code>isPlaying</code> state.</li>
+<li>If <code>isPlaying</code> is true, start a
+<code>requestAnimationFrame</code> loop inside the component to read
+directly from <code>Tone.Transport.seconds</code> or
+<code>Tone.Transport.progress</code>.</li>
+<li>Update a local component state or directly mutate a DOM/SVG element
+to move the playhead, bypassing the global store entirely for these
+high-frequency updates.</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Inside a Vue or React Component</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">updatePlayhead</span>() {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (store<span class="op">.</span><span class="at">state</span><span class="op">.</span><span class="at">playback</span><span class="op">.</span><span class="at">isPlaying</span>) {</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> currentProgress <span class="op">=</span> Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="at">progress</span><span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    progressBarRef<span class="op">.</span><span class="at">current</span><span class="op">.</span><span class="at">style</span><span class="op">.</span><span class="at">transform</span> <span class="op">=</span> <span class="vs">`scaleX(</span><span class="sc">${</span>currentProgress<span class="sc">}</span><span class="vs">)`</span><span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">requestAnimationFrame</span>(updatePlayhead)<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="strategy-3-unidirectional-command-flow-via-middleware">Strategy
+3: Unidirectional Command Flow via Middleware</h2>
+<p>To keep a clean separation of concerns, use Redux middleware or Vuex
+actions as a bridge. The UI should never call Tone.js methods directly;
+instead, it should dispatch actions.</p>
+<h3 id="the-command-flow">The Command Flow:</h3>
+<ol type="1">
+<li><strong>UI Event:</strong> User clicks the play button.</li>
+<li><strong>Dispatch Action:</strong> UI dispatches
+<code>PLAY_REQUESTED</code>.</li>
+<li><strong>Middleware/Action Handler:</strong> Intercepts the action,
+calls <code>Tone.Transport.start()</code>, and then dispatches
+<code>PLAY_SUCCESS</code>.</li>
+<li><strong>Store Update:</strong> Redux/Vuex updates
+<code>isPlaying</code> to <code>true</code>.</li>
+<li><strong>UI Update:</strong> The play button changes to a pause
+icon.</li>
+</ol>
+<p>This ensures that Tone.js remains the single source of truth for the
+audio state, while Redux/Vuex remains the single source of truth for the
+UI representation.</p>
+<h2 id="strategy-4-leverage-tonedraw-for-visual-sync">Strategy 4:
+Leverage Tone.Draw for Visual Sync</h2>
+<p>When you need UI events to sync precisely with scheduled audio events
+(such as flashing a beat indicator on a step sequencer), use
+<code>Tone.Draw</code>.</p>
+<p><code>Tone.Draw</code> schedules draw callbacks in sync with the Web
+Audio clock, steering clear of latency issues:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">scheduleRepeat</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Schedule the audio event</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Schedule the UI event to sync with the audio event</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  Tone<span class="op">.</span><span class="at">Draw</span><span class="op">.</span><span class="fu">schedule</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Dispatch a light-weight action to flash a UI pad</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    store<span class="op">.</span><span class="fu">dispatch</span>(<span class="st">&#39;sequencer/flashPad&#39;</span><span class="op">,</span> currentStep)<span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementing Compression with Tone.js Compressor - tone.js</title>
+    <meta name="description" content="This article provides a practical guide on how to implement and configure a compression effect using Tone.Compressor in Tone.js. You will learn how to initialize the compressor, customize its key parameters—such as threshold, ratio, attack, and release">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/implementing-compression-with-tone-js-compressor">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Implementing Compression with Tone.js Compressor - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/implementing-compression-with-tone-js-compressor" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on how to implement and configure a compression effect using Tone.Compressor in Tone.js. You will learn how to initialize the compressor, customize its key parameters—such as threshold, ratio, attack, and release" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="implementing-compression-with-tonejs-compressor">Implementing
+Compression with Tone.js Compressor</h1>
+<p>This article provides a practical guide on how to implement and
+configure a compression effect using <code>Tone.Compressor</code> in
+Tone.js. You will learn how to initialize the compressor, customize its
+key parameters—such as threshold, ratio, attack, and release—and connect
+it to your audio source to control the dynamic range of your web audio
+applications.</p>
+<h2 id="what-is-tonecompressor">What is Tone.Compressor?</h2>
+<p><code>Tone.Compressor</code> is a built-in node in Tone.js that
+reduces the dynamic range of an audio signal. It lowers the volume of
+loud signals that exceed a certain threshold, helping to prevent
+clipping, smooth out volume spikes, and create a more cohesive and
+polished mix.</p>
+<h2 id="step-by-step-implementation">Step-by-Step Implementation</h2>
+<p>To use the compressor, you need to import Tone.js, instantiate the
+<code>Tone.Compressor</code> object, configure its parameters, and route
+your audio source through it.</p>
+<h3 id="1-initialize-the-compressor">1. Initialize the Compressor</h3>
+<p>You can create a compressor with default settings or pass an options
+object to define its initial behavior.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a compressor with custom settings</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> compressor <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Compressor</span>({</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">threshold</span><span class="op">:</span> <span class="op">-</span><span class="dv">24</span><span class="op">,</span> <span class="co">// in decibels</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ratio</span><span class="op">:</span> <span class="dv">4</span><span class="op">,</span>       <span class="co">// reduction ratio</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">knee</span><span class="op">:</span> <span class="dv">30</span><span class="op">,</span>       <span class="co">// smoothness of the transition</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">attack</span><span class="op">:</span> <span class="fl">0.03</span><span class="op">,</span>   <span class="co">// in seconds</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">release</span><span class="op">:</span> <span class="fl">0.25</span>   <span class="co">// in seconds</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="2-understanding-the-parameters">2. Understanding the
+Parameters</h3>
+<ul>
+<li><strong>threshold</strong>: The decibel level (dB) above which the
+compressor starts working. Any signal quieter than this threshold
+remains unaffected.</li>
+<li><strong>ratio</strong>: The amount of gain reduction applied once
+the signal exceeds the threshold. For example, a 4:1 ratio means that
+for every 4dB the input goes over the threshold, the output only
+increases by 1dB.</li>
+<li><strong>knee</strong>: Determines how smoothly the compressor
+transitions from uncompressed to compressed states as the signal crosses
+the threshold.</li>
+<li><strong>attack</strong>: The time (in seconds) it takes for the
+compressor to fully apply gain reduction once the signal exceeds the
+threshold.</li>
+<li><strong>release</strong>: The time (in seconds) it takes for the
+compressor to stop reducing gain once the signal falls below the
+threshold.</li>
+</ul>
+<h3 id="3-connect-an-audio-source">3. Connect an Audio Source</h3>
+<p>To apply the effect, connect your audio source (like a synthesizer,
+player, or oscillator) directly to the compressor instead of the default
+destination.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a synthesizer</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">connect</span>(compressor)<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Trigger a note to hear the compressed sound</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="fu">loaded</span>()<span class="op">.</span><span class="fu">then</span>(() <span class="kw">=&gt;</span> {</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h3 id="4-modifying-parameters-dynamically">4. Modifying Parameters
+Dynamically</h3>
+<p>You can adjust the compressor's parameters in real-time during
+playback by accessing its properties. Because these properties are
+Tone.js AudioParams, you must modify their <code>value</code>
+property.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Change threshold and ratio on the fly</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>compressor<span class="op">.</span><span class="at">threshold</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="op">-</span><span class="dv">12</span><span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>compressor<span class="op">.</span><span class="at">ratio</span><span class="op">.</span><span class="at">value</span> <span class="op">=</span> <span class="dv">8</span><span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

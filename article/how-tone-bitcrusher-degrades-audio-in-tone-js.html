@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Tone.BitCrusher Degrades Audio in Tone.js - tone.js</title>
+    <meta name="description" content="This article explores Tone.BitCrusher, an effect node in the Tone.js web audio library designed to deliberately distort and degrade audio signals. We will examine its primary purpose in digital sound design, the technical mechanisms it uses to reduce aud">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/how-tone-bitcrusher-degrades-audio-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Tone.BitCrusher Degrades Audio in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/how-tone-bitcrusher-degrades-audio-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores Tone.BitCrusher, an effect node in the Tone.js web audio library designed to deliberately distort and degrade audio signals. We will examine its primary purpose in digital sound design, the technical mechanisms it uses to reduce aud" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="how-tonebitcrusher-degrades-audio-in-tonejs">How Tone.BitCrusher
+Degrades Audio in Tone.js</h1>
+<p>This article explores <code>Tone.BitCrusher</code>, an effect node in
+the Tone.js web audio library designed to deliberately distort and
+degrade audio signals. We will examine its primary purpose in digital
+sound design, the technical mechanisms it uses to reduce audio
+resolution, and how to implement it to achieve classic "lo-fi" and
+chiptune aesthetics.</p>
+<h2 id="what-is-tonebitcrusher">What is Tone.BitCrusher?</h2>
+<p><code>Tone.BitCrusher</code> is an audio effect in Tone.js that
+emulates the sound of early digital audio hardware, such as vintage
+samplers and 8-bit video game consoles. Its primary purpose is to
+introduce digital distortion into an audio signal. Unlike analog
+distortion, which rounds off waveforms and adds warm harmonics,
+bitcrushing introduces harsh, metallic, and mathematically jagged
+artifacts into the sound by reducing the digital resolution of the audio
+stream.</p>
+<h2 id="how-it-degrades-audio-quality">How It Degrades Audio
+Quality</h2>
+<p>Digital audio represents sound waves using two main parameters:
+sample rate (frequency over time) and bit depth (amplitude resolution).
+<code>Tone.BitCrusher</code> degrades audio quality primarily by
+manipulating <strong>bit depth</strong>.</p>
+<h3 id="1-bit-depth-reduction-quantization">1. Bit Depth Reduction
+(Quantization)</h3>
+<p>In modern web audio, signals are processed at a high resolution
+(typically 32-bit floating-point). This provides a virtually infinite
+number of amplitude values, resulting in a smooth, clean waveform.</p>
+<p>The <code>Tone.BitCrusher</code> node reduces this resolution to a
+user-defined number of bits (usually between 1 and 16).</p>
+<ul>
+<li><strong>The Process:</strong> It quantizes the continuous input
+signal, forcing the amplitude of the audio wave to snap to the nearest
+available step in a much smaller range of values. For example, a 3-bit
+setting only allows for <span class="math inline">\(2^3\)</span> (8)
+possible amplitude levels.</li>
+<li><strong>The Result:</strong> The smooth curves of the original
+waveform are replaced by rigid, staircase-like steps. This drastic
+rounding error creates <strong>quantization noise</strong>, which
+manifests as a harsh, distorted hiss that sits on top of the original
+signal.</li>
+</ul>
+<h3 id="2-harmonic-distortion-and-aliasing">2. Harmonic Distortion and
+Aliasing</h3>
+<p>As the bit depth decreases, the extreme quantization changes the
+shape of the sound waves. This introduces new, mathematically related
+frequencies into the audio spectrum. Because these frequencies often
+exceed the Nyquist frequency of the digital system, they "fold back"
+into the audible spectrum as <strong>aliasing frequencies</strong>. This
+results in metallic, robotic, and bell-like ring-modulation sounds that
+are highly characteristic of early digital synthesizers.</p>
+<h2 id="implementing-tonebitcrusher-in-tonejs">Implementing
+Tone.BitCrusher in Tone.js</h2>
+<p>To use the bitcrusher effect, you instantiate the
+<code>Tone.BitCrusher</code> class and pass it a <code>bits</code>
+parameter, which determines the target bit depth.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a BitCrusher effect set to 4-bit resolution</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> crusher <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">BitCrusher</span>({</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bits</span><span class="op">:</span> <span class="dv">4</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a synthesizer and connect it to the bitcrusher</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">connect</span>(crusher)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Trigger a note to hear the degraded, lo-fi sound</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<h3 id="key-parameter-bits">Key Parameter: Bits</h3>
+<p>The <code>bits</code> property is the core control of the effect:</p>
+<ul>
+<li><strong>1 to 4 bits:</strong> Extreme degradation. The original
+sound becomes highly unrecognizable, turning into a buzzy,
+square-wave-like noise. Ideal for harsh noise and heavy industrial
+sounds.</li>
+<li><strong>5 to 8 bits:</strong> Classic "chiptune" or retro game
+console quality. The sound is noticeably gritty, crunchy, and retro, but
+retains its melodic pitch.</li>
+<li><strong>9 to 12 bits:</strong> Vintage sampler emulation (like the
+E-mu SP-1200). Adds a subtle, warm digital crust and mid-range punch to
+drum loops and synths.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

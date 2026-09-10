@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Role of Tone.Event in Tone.js Scheduling - tone.js</title>
+    <meta name="description" content="This article explores the role of Tone.Event in Tone.js, a powerful class designed for scheduling general-purpose events along the audio timeline. You will learn how Tone.Event works, how it differs from other scheduling utilities, and how to implement i">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/the-role-of-tone-event-in-tone-js-scheduling">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The Role of Tone.Event in Tone.js Scheduling - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/the-role-of-tone-event-in-tone-js-scheduling" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the role of Tone.Event in Tone.js, a powerful class designed for scheduling general-purpose events along the audio timeline. You will learn how Tone.Event works, how it differs from other scheduling utilities, and how to implement i" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="the-role-of-toneevent-in-tonejs-scheduling">The Role of
+Tone.Event in Tone.js Scheduling</h1>
+<p>This article explores the role of <code>Tone.Event</code> in Tone.js,
+a powerful class designed for scheduling general-purpose events along
+the audio timeline. You will learn how <code>Tone.Event</code> works,
+how it differs from other scheduling utilities, and how to implement it
+to trigger custom callback functions precisely in sync with the Tone.js
+Transport.</p>
+<h2 id="what-is-toneevent">What is Tone.Event?</h2>
+<p>In Tone.js, <code>Tone.Event</code> is a flexible, low-level class
+used to schedule a callback function at a specific time along the
+Transport timeline. While classes like <code>Tone.Sequence</code> are
+tailored for step-sequencing and <code>Tone.Part</code> is built for
+multi-note musical scores, <code>Tone.Event</code> is the foundational
+tool for general-purpose, time-aligned actions.</p>
+<p>It allows developers to trigger non-audio events—such as UI
+animations, state changes, or custom JavaScript logic—precisely
+synchronized with audio playback.</p>
+<h2 id="key-features-of-toneevent">Key Features of Tone.Event</h2>
+<p><code>Tone.Event</code> provides several features that make it
+superior to basic timeout functions or raw Transport scheduling:</p>
+<ul>
+<li><strong>Timeline Synchronization:</strong> Events are bound to the
+<code>Tone.Transport</code>. If the Transport pauses, speeds up, or
+slows down, the execution of the <code>Tone.Event</code> adjusts
+accordingly.</li>
+<li><strong>Looping Capabilities:</strong> You can easily configure an
+event to loop at a set interval for a specific duration or
+indefinitely.</li>
+<li><strong>Playback Control:</strong> Each <code>Tone.Event</code>
+instance can be started, stopped, canceled, or muted individually
+without affecting the rest of the timeline.</li>
+<li><strong>State Tracking:</strong> It provides built-in properties
+like <code>progress</code> to track how far along a looping event is in
+its current iteration.</li>
+</ul>
+<h2 id="how-to-use-toneevent">How to Use Tone.Event</h2>
+<p>To use <code>Tone.Event</code>, you instantiate the class with a
+callback function and then schedule its start time. The callback
+function receives two arguments: the precise audio <code>time</code> at
+which the event occurs, and an optional <code>value</code> payload.</p>
+<p>Here is a basic implementation:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="op">*</span> <span class="im">as</span> Tone <span class="im">from</span> <span class="st">&quot;tone&quot;</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a synth to play a sound</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> synth <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Synth</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Define the event</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myEvent <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Event</span>((time<span class="op">,</span> pitch) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Use the precise audio time to trigger the synth</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(pitch<span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Triggered </span><span class="sc">${</span>pitch<span class="sc">}</span><span class="vs"> at transport time: </span><span class="sc">${</span>time<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="st">&quot;C4&quot;</span>)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedule the event to start at the beginning of the Transport timeline</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>myEvent<span class="op">.</span><span class="fu">start</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the Transport to hear the event</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<h2 id="creating-looping-events">Creating Looping Events</h2>
+<p><code>Tone.Event</code> is highly effective for creating repeating
+patterns that are more complex than standard metronomes but simpler than
+full musical parts.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> loopingEvent <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Event</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Your recurring action here</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;Loop event fired at&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Configure the loop settings</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>loopingEvent<span class="op">.</span><span class="at">loop</span> <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>loopingEvent<span class="op">.</span><span class="at">loopEnd</span> <span class="op">=</span> <span class="st">&quot;1m&quot;</span><span class="op">;</span> <span class="co">// Loop every 1 measure</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>loopingEvent<span class="op">.</span><span class="at">playbackRate</span> <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">// Start looping at the 2nd measure</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>loopingEvent<span class="op">.</span><span class="fu">start</span>(<span class="st">&quot;2:0:0&quot;</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="toneevent-vs-transportschedule">Tone.Event vs.
+Transport.schedule</h2>
+<p>While you can schedule callbacks directly using
+<code>Tone.Transport.schedule()</code>, using <code>Tone.Event</code>
+offers distinct advantages:</p>
+<ol type="1">
+<li><strong>Encapsulation:</strong> <code>Tone.Event</code> wraps the
+event logic, timing, and state into a single object.</li>
+<li><strong>Dynamic Manipulation:</strong> With
+<code>Transport.schedule()</code>, once an event is scheduled, you must
+use an ID to cancel it. With <code>Tone.Event</code>, you can call
+<code>.stop()</code>, <code>.start()</code>, or mutate properties like
+<code>.playbackRate</code> directly on the object instance at any time
+during runtime.</li>
+</ol></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Multiple Audio Files into Tone.js Sampler - tone.js</title>
+    <meta name="description" content="This article explains how to load multiple audio files into a Tone.Sampler in Tone.js. You will learn how to map multiple audio samples to specific musical notes, configure the sampler with a base URL, and trigger the sounds once they are fully loaded in">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/load-multiple-audio-files-into-tone-js-sampler">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Load Multiple Audio Files into Tone.js Sampler - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/load-multiple-audio-files-into-tone-js-sampler" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to load multiple audio files into a Tone.Sampler in Tone.js. You will learn how to map multiple audio samples to specific musical notes, configure the sampler with a base URL, and trigger the sounds once they are fully loaded in" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="load-multiple-audio-files-into-tonejs-sampler">Load Multiple
+Audio Files into Tone.js Sampler</h1>
+<p>This article explains how to load multiple audio files into a
+<code>Tone.Sampler</code> in Tone.js. You will learn how to map multiple
+audio samples to specific musical notes, configure the sampler with a
+base URL, and trigger the sounds once they are fully loaded into the
+browser.</p>
+<h2 id="the-tonesampler-object">The Tone.Sampler Object</h2>
+<p>In Tone.js, <code>Tone.Sampler</code> is the best tool for creating
+multi-sampled instruments. Instead of loading a single audio file, you
+pass an object containing multiple note-to-audio-file mappings. Tone.js
+automatically repitches the samples to fill in the gaps for notes you
+didn’t explicitly define.</p>
+<h3 id="step-1-define-the-sample-mapping">Step 1: Define the Sample
+Mapping</h3>
+<p>To load multiple files, create an object where the keys represent
+musical pitches (e.g., "C4", "A4") and the values are the paths to the
+corresponding audio files.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sampleMap <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;C4&quot;</span><span class="op">:</span> <span class="st">&quot;c4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;E4&quot;</span><span class="op">:</span> <span class="st">&quot;e4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;G4&quot;</span><span class="op">:</span> <span class="st">&quot;g4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;C5&quot;</span><span class="op">:</span> <span class="st">&quot;c5.mp3&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="step-2-initialize-the-sampler">Step 2: Initialize the
+Sampler</h3>
+<p>Pass the mapping object into the <code>Tone.Sampler</code>
+constructor. You can use the <code>urls</code> property for your
+mapping, and optionally define a <code>baseUrl</code> to avoid repeating
+the folder path for every file.</p>
+<p>To ensure the audio is ready before you attempt to play it, use the
+<code>onload</code> callback.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sampler <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Sampler</span>({</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">urls</span><span class="op">:</span> {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">C4</span><span class="op">:</span> <span class="st">&quot;c4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">E4</span><span class="op">:</span> <span class="st">&quot;e4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">G4</span><span class="op">:</span> <span class="st">&quot;g4.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">C5</span><span class="op">:</span> <span class="st">&quot;c5.mp3&quot;</span><span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">baseUrl</span><span class="op">:</span> <span class="st">&quot;https://example.com/audio/samples/&quot;</span><span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">onload</span><span class="op">:</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;All samples loaded successfully!&quot;</span>)<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>})<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span></code></pre></div>
+<h3 id="step-3-trigger-the-samples">Step 3: Trigger the Samples</h3>
+<p>Once loaded, you can play any note. Tone.js will pitch-shift the
+nearest available sample to match the requested note.</p>
+<p>To play a note, start the audio context (required by browsers) and
+call <code>triggerAttackRelease</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Trigger a single note</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sampler<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;D4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span>)<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Trigger a chord using the loaded samples</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>sampler<span class="op">.</span><span class="fu">triggerAttackRelease</span>([<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;E4&quot;</span><span class="op">,</span> <span class="st">&quot;G4&quot;</span>]<span class="op">,</span> <span class="st">&quot;2n&quot;</span>)<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

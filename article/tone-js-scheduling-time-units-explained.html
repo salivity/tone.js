@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tone.js Scheduling Time Units Explained - tone.js</title>
+    <meta name="description" content="This article explains the units of time used by Tone.js for its audio scheduling methods. While Tone.js fundamentally operates on seconds under the hood to align with the Web Audio API, it provides a highly flexible Time representation that allows develo">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/tone-js-scheduling-time-units-explained">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Tone.js Scheduling Time Units Explained - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/tone-js-scheduling-time-units-explained" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the units of time used by Tone.js for its audio scheduling methods. While Tone.js fundamentally operates on seconds under the hood to align with the Web Audio API, it provides a highly flexible Time representation that allows develo" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="tonejs-scheduling-time-units-explained">Tone.js Scheduling Time
+Units Explained</h1>
+<p>This article explains the units of time used by Tone.js for its audio
+scheduling methods. While Tone.js fundamentally operates on seconds
+under the hood to align with the Web Audio API, it provides a highly
+flexible <code>Time</code> representation that allows developers to use
+musical notation, transport time, ticks, and frequency values
+interchangeably.</p>
+<h2 id="seconds-the-base-unit">Seconds: The Base Unit</h2>
+<p>By default, any raw number passed into a Tone.js scheduling method
+(such as <code>Tone.Transport.schedule()</code>) is interpreted as
+<strong>seconds</strong>.</p>
+<p>For example, if you pass <code>2.5</code> to a scheduler, the event
+will trigger exactly 2.5 seconds after the Transport starts.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedules an event at exactly 2 seconds</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Tone<span class="op">.</span><span class="at">Transport</span><span class="op">.</span><span class="fu">schedule</span>((time) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> time)<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>}<span class="op">,</span> <span class="dv">2</span>)<span class="op">;</span></span></code></pre></div>
+<h2 id="the-tonejs-time-type">The Tone.js Time Type</h2>
+<p>To make music programming more intuitive, Tone.js wraps numbers in a
+custom global type called <code>Time</code>. Whenever a method accepts a
+time argument, you can pass a string representing various musical and
+synchronization formats instead of doing manual math in seconds.</p>
+<p>The primary time formats supported include:</p>
+<h3 id="1-musical-notation">1. Musical Notation</h3>
+<p>You can specify time relative to the current tempo (BPM) using
+standard musical notation strings:</p>
+<ul>
+<li><code>"4n"</code> - Quarter note</li>
+<li><code>"8n"</code> - Eighth note</li>
+<li><code>"16n"</code> - Sixteenth note</li>
+<li><code>"2m"</code> - Two measures (bars)</li>
+<li><code>"4nt"</code> - Quarter note triplet</li>
+<li><code>"8n."</code> - Dotted eighth note</li>
+</ul>
+<h3 id="2-transport-time-barsbeatssixteenths">2. Transport Time
+(Bars:Beats:Sixteenths)</h3>
+<p>For arranging music along a timeline, Tone.js uses a
+<code>"B:B:S"</code> format:</p>
+<ul>
+<li><code>"0:0:0"</code> - The very start of the timeline.</li>
+<li><code>"2:1:0"</code> - Measure 2, beat 1, 0 sixteenths.</li>
+</ul>
+<h3 id="3-ticks">3. Ticks</h3>
+<p>Ticks are the smallest unit of measurement on the Transport timeline.
+By default, there are 192 ticks per quarter note (PPQ). Ticks are
+represented by appending an <code>"i"</code> to the number:</p>
+<ul>
+<li><code>"192i"</code> - Equivalent to one quarter note.</li>
+</ul>
+<h3 id="4-frequency">4. Frequency</h3>
+<p>Time can also be expressed in terms of frequency (Hertz), which
+Tone.js automatically converts to the corresponding period duration.
+This is represented by appending <code>"hz"</code>:</p>
+<ul>
+<li><code>"4hz"</code> - Equivalent to 0.25 seconds.</li>
+</ul>
+<h2 id="relative-scheduling">Relative Scheduling</h2>
+<p>When scheduling events dynamically, you can use the prefix
+<code>"+"</code> to schedule an event relative to the current
+AudioContext time.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Schedules an event 1 quarter note from the current moment</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>synth<span class="op">.</span><span class="fu">triggerAttackRelease</span>(<span class="st">&quot;C4&quot;</span><span class="op">,</span> <span class="st">&quot;8n&quot;</span><span class="op">,</span> <span class="st">&quot;+4n&quot;</span>)<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is Tone.LFO and its Wave Shapes in Tone.js - tone.js</title>
+    <meta name="description" content="This article explains what the Tone.LFO (Low-Frequency Oscillator) class is in the Tone.js web audio library and details the various oscillator wave shapes it supports. You will learn how to configure an LFO to modulate audio parameters and explore the s">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/what-is-tone-lfo-and-its-wave-shapes-in-tone-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="What is Tone.LFO and its Wave Shapes in Tone.js - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/what-is-tone-lfo-and-its-wave-shapes-in-tone-js" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains what the Tone.LFO (Low-Frequency Oscillator) class is in the Tone.js web audio library and details the various oscillator wave shapes it supports. You will learn how to configure an LFO to modulate audio parameters and explore the s" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="what-is-tonelfo-and-its-wave-shapes-in-tonejs">What is Tone.LFO
+and its Wave Shapes in Tone.js</h1>
+<p>This article explains what the <code>Tone.LFO</code> (Low-Frequency
+Oscillator) class is in the Tone.js web audio library and details the
+various oscillator wave shapes it supports. You will learn how to
+configure an LFO to modulate audio parameters and explore the specific
+waveforms available for creating dynamic sound synthesis effects.</p>
+<h2 id="understanding-tonelfo">Understanding Tone.LFO</h2>
+<p>In Tone.js, <code>Tone.LFO</code> is an oscillator designed to
+operate at low frequencies, typically below the audible range (less than
+20 Hz). Instead of being heard directly as sound, an LFO is used to
+modulate other audio parameters over time. For example, you can connect
+an LFO to the frequency of a synthesizer to create vibrato, or to the
+volume of an amplifier to create tremolo.</p>
+<p>The <code>Tone.LFO</code> class outputs a signal that alternates
+between a designated minimum and maximum value at a speed determined by
+its frequency.</p>
+<h3 id="basic-usage-example">Basic Usage Example</h3>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create an LFO oscillating between 100Hz and 1000Hz at a rate of 2Hz</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> lfo <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">LFO</span>(<span class="st">&quot;2hz&quot;</span><span class="op">,</span> <span class="dv">100</span><span class="op">,</span> <span class="dv">1000</span>)<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Connect the LFO to a filter&#39;s frequency parameter</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> filter <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Filter</span>(<span class="dv">200</span><span class="op">,</span> <span class="st">&quot;lowpass&quot;</span>)<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>lfo<span class="op">.</span><span class="fu">connect</span>(filter<span class="op">.</span><span class="at">frequency</span>)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the LFO</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>lfo<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="supported-wave-shapes-in-tonelfo">Supported Wave Shapes in
+Tone.LFO</h2>
+<p>The wave shape (or type) of the LFO determines the pattern of the
+modulation. <code>Tone.LFO</code> inherits its oscillator behaviors from
+<code>Tone.Oscillator</code>, supporting several standard wave
+shapes:</p>
+<h3 id="1-sine-sine">1. Sine (<code>sine</code>)</h3>
+<p>The sine wave is the default wave shape. It provides a smooth,
+continuous, and natural-sounding transition between the minimum and
+maximum values. It is ideal for gentle vibrato, tremolo, or subtle
+filter sweeps.</p>
+<h3 id="2-triangle-triangle">2. Triangle (<code>triangle</code>)</h3>
+<p>The triangle wave rises and falls in a linear, straight-line ramp.
+This creates a highly predictable, constant-speed modulation that
+changes direction sharply at the peaks and troughs.</p>
+<h3 id="3-sawtooth-sawtooth">3. Sawtooth (<code>sawtooth</code>)</h3>
+<p>The sawtooth wave rises linearly from its minimum value to its
+maximum value, then drops instantly back to the minimum. This ramp-up
+shape is useful for rhythmic, building modulation effects that reset
+abruptly.</p>
+<h3 id="4-square-square">4. Square (<code>square</code>)</h3>
+<p>The square wave switches instantly between the maximum and minimum
+values without any transition states. It spends 50% of its cycle at the
+maximum value and 50% at the minimum. This creates a rhythmic, gating,
+or hard-switching effect (such as an octave jump or abrupt on/off
+modulation).</p>
+<hr />
+<h2 id="advanced-waveform-types">Advanced Waveform Types</h2>
+<p>In addition to the four basic shapes, Tone.js allows you to customize
+the harmonic content of these waveforms by appending a number
+representing the number of partials, or by using specific
+variations:</p>
+<ul>
+<li><strong>Partials (e.g., <code>sine4</code>,
+<code>square2</code>):</strong> By adding a number to the end of a basic
+wave shape name, you specify a custom number of partials to generate a
+band-limited version of that waveform.</li>
+<li><strong>PWM (Pulse Width Modulation):</strong> While not a direct
+string type for the basic LFO, pulse width modulation styles can be
+achieved by modulating the width of square-like signals.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

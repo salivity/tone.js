@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combine Mono Signals to Stereo with Tone.Merge - tone.js</title>
+    <meta name="description" content="In web audio development using Tone.js, spatial positioning and channel routing are essential for creating dynamic soundscapes. This article explains how to use the Tone.Merge node to combine two independent mono audio signals into a single, cohesive ste">
+    <link rel="canonical" href="https://salivity.github.io/tone.js/article/combine-mono-signals-to-stereo-with-tone-merge">
+    <link rel="search" type="application/opensearchdescription+xml" title="tone.js" href="/tone.js/opensearch.xml">
+    <link rel="icon" href="/tone.js/favicon.ico">
+    <link rel="stylesheet" href="/tone.js/css/style.css">
+    <link media="print" rel="stylesheet" href="/tone.js/css/print.css">
+    <script src="/tone.js/js/fuse.min.js"></script>
+    <script src="/tone.js/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Combine Mono Signals to Stereo with Tone.Merge - tone.js" />
+    <meta property="og:url" content="https://salivity.github.io/tone.js/article/combine-mono-signals-to-stereo-with-tone-merge" />
+    <meta property="og:image:url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/tone.js/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="In web audio development using Tone.js, spatial positioning and channel routing are essential for creating dynamic soundscapes. This article explains how to use the Tone.Merge node to combine two independent mono audio signals into a single, cohesive ste" />
+    <link rel="manifest" href="/tone.js/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/tone.js/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>tone.js</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/tone.js/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <article><h1 id="combine-mono-signals-to-stereo-with-tonemerge">Combine Mono
+Signals to Stereo with Tone.Merge</h1>
+<p>In web audio development using Tone.js, spatial positioning and
+channel routing are essential for creating dynamic soundscapes. This
+article explains how to use the <code>Tone.Merge</code> node to combine
+two independent mono audio signals into a single, cohesive stereo
+output. You will learn the basic concepts of channel merging, how to
+instantiate the node, and how to route left and right audio channels
+effectively using practical code examples.</p>
+<h2 id="understanding-the-tonemerge-node">Understanding the Tone.Merge
+Node</h2>
+<p>By default, many audio sources in Tone.js (such as basic oscillators
+or mono players) output a single mono channel. If you want to position
+different sounds strictly in the left and right speakers without using a
+panner node, you need a way to merge these separate paths.</p>
+<p>The <code>Tone.Merge</code> node solves this by providing two mono
+inputs—one for the left channel and one for the right channel—and
+combining them into a single stereo output.</p>
+<h2 id="how-to-connect-mono-signals-to-tonemerge">How to Connect Mono
+Signals to Tone.Merge</h2>
+<p>To combine two mono signals, you instantiate the
+<code>Tone.Merge</code> node and connect your audio sources directly to
+its <code>.left</code> and <code>.right</code> input properties.</p>
+<p>Here is a step-by-step code example demonstrating this process:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Create two separate mono sources (e.g., two oscillators)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> leftOscillator <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Oscillator</span>(<span class="dv">440</span><span class="op">,</span> <span class="st">&quot;sine&quot;</span>)<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> rightOscillator <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Oscillator</span>(<span class="dv">445</span><span class="op">,</span> <span class="st">&quot;triangle&quot;</span>)<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span> <span class="co">// slightly different frequency for stereo width</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Create the Merge node and connect its stereo output to the main output</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> mergeNode <span class="op">=</span> <span class="kw">new</span> Tone<span class="op">.</span><span class="fu">Merge</span>()<span class="op">.</span><span class="fu">toDestination</span>()<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// 3. Connect the mono sources to the respective left and right inputs of the Merge node</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>leftOscillator<span class="op">.</span><span class="fu">connect</span>(mergeNode<span class="op">.</span><span class="at">left</span>)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>rightOscillator<span class="op">.</span><span class="fu">connect</span>(mergeNode<span class="op">.</span><span class="at">right</span>)<span class="op">;</span></span></code></pre></div>
+<p>In this setup:</p>
+<ul>
+<li><code>leftOscillator</code> is routed exclusively to the left
+speaker.</li>
+<li><code>rightOscillator</code> is routed exclusively to the right
+speaker.</li>
+<li>The output of <code>mergeNode</code> is a single stereo signal sent
+to your speakers (<code>toDestination()</code>).</li>
+</ul>
+<h2 id="key-benefits-of-using-tonemerge">Key Benefits of Using
+Tone.Merge</h2>
+<ul>
+<li><strong>Discrete Control:</strong> It allows you to apply different
+effects to each channel before they are merged. For example, you can add
+a delay only to the left channel and a distortion only to the right
+channel, then merge them into a single stereo track.</li>
+<li><strong>True Stereo Generation:</strong> Unlike a standard panner
+node which simply shifts a single sound across the stereo field,
+<code>Tone.Merge</code> lets you construct a stereo image from two
+completely different audio sources.</li>
+<li><strong>Efficiency:</strong> It simplifies routing by consolidating
+two distinct audio graphs into a single stereo stream for final master
+processing.</li>
+</ul></article>
+        <div id="comments-container"></div>
+
+        <script>
+            const utterancesScript = document.createElement('script');
+            
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/tone.js'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/tone.js/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/tone.js/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
